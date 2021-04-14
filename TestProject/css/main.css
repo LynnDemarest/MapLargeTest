@@ -1,0 +1,80 @@
+﻿body {
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+ul {
+    list-style:none;
+}
+
+#knockoutContainer
+{
+    width:600px;
+}
+
+.statusMessage{
+    border:1px solid gray;
+    min-height:1rem;
+    background-color: #eee;
+    padding:1rem;
+    margin-bottom:.5rem;
+}
+.hidden{
+    visibility:hidden;
+}
+
+.deleteicon {
+    height:1rem;
+    margin-left:1rem;
+    margin-right:1rem;
+}
+
+.linenumber {
+    width:2rem;
+    text-align:right;
+    font-size:.9rem;
+}
+
+.clickable:hover {
+    cursor: pointer;
+}
+
+
+footer {
+    margin-top: 5rem;
+    font-size: .8rem;
+}
+
+
+.divFolders{
+    border:1px solid gray;
+    margin-bottom:1rem;
+}
+
+.divFiles {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
+}
+
+.divSearchResults {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
+}
+
+#divSearchBody
+{
+    padding:1rem;
+}
+.divUploadFiles {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
+}
+.uploadPanel{
+    padding:1rem;
+}
+
+.header {
+    background: gray;
+    color: white;
+    font-weight:bold;
+    padding:1rem;
+}

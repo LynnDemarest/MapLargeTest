@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Test Project : MapLarge</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
+    <script src="js/FileMan.js"></script>
+
+    <!-- remove in production and replace with favicon.ico -->
+    <link rel="shortcut icon" href="#">
+
+    <link href="../css/main.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="knockoutContainer">
+        <h1>MapLarge Programming Test</h1>
+        <div id="statusMessage" class="statusMessage hidden">
+            <span data-bind="text: statusMessage" ></span>
+        </div>
+        <div>
+            <input type="text" data-bind="value: searchPhrase" /> <button class="clickable" data-bind="click: doSearch()">Search</button>
+        </div>
+        <div>
+            <img src="img/upfolder.svg" alt="Go up one level." style="height:2rem;" class="clickable" data-bind="click: goUp();" />
+            Current Folder : <span id="rootFolder" data-bind="text: rootFolder"></span>
+        </div>
+        <div class="divFolders">
+            <div class="header">
+                Folders : (<span data-bind="text: numberOfFolders"></span>)
+            </div>
+            <ul data-bind="foreach: folders">
+                <li class="clickable" data-bind="text: $data,
+                                     click: $root.selectFolder ">
+
+                </li>
+            </ul>
+        </div>
+        <div class="divFiles">
+            <div class="header">
+                Files : (<span data-bind="text: numberOfFiles"></span>)
+            </div>
+            
+            <ul data-bind="foreach: files" >
+                <div style="display:flex;">
+                    <div class="linenumber" data-bind="text: ($index() + 1 + '. ')"></div>
+                    <img src="img/delete.svg" class="clickable deleteicon"
+                         data-bind="text: $data,
+                                     click: $root.deleteFile"
+                         />
+                    &nbsp;&nbsp;&nbsp;
+                    <li class="clickable" data-bind="text: $data,
+                                     click: $root.selectFile">
+                    </li>
+                </div>
+            </ul>
+        </div>
+
+        <div class="divUploadFiles">
+            <div class="header">
+                Upload Files
+            </div>
+            <div class="uploadPanel">
+                <input type="file" id="FileUpload1" multiple />
+                <input type="button" id="btnUpload2" value="Upload Files"
+                       data-bind="click: $root.uploadFile"
+                       />
+            </div>
+        </div>
+
+        <footer>
+            Icon by <a href="https://freeicons.io/profile/3117">1273358166187522</a> on <a href="https://freeicons.io">freeicons.io</a>
+        </footer>
+
+        <script>
+            ko.applyBindings(new FileManModel(),
+                document.querySelector("#knockoutContainer"));
+
+            //var fileMan = new FileMan();
+
+            $(document).ready(function () {
+                $('#btnUpload').click(function () {
+                    doUpload();
+                    // Checking whether FormData is available in browser
+                    //    if (window.FormData !== undefined) {
+
+                    //        var fileUpload = $("#FileUpload1").get(0);
+                    //        var files = fileUpload.files;
+
+                    //        // Create FormData object
+                    //        var fileData = new FormData();
+
+                    //        // Looping over all files and add it to FormData object
+                    //        for (var i = 0; i < files.length; i++) {
+                    //            fileData.append(files[i].name, files[i]);
+                    //        }
+
+                    //        // Adding one more key to FormData object
+                    //        var destinationFolder = document.getElementById("rootFolder").innerText;
+                    //        fileData.append('destinationFolder', destinationFolder);
+
+                    //        $.ajax({
+                    //            url: '/Default/UploadFiles',
+                    //            type: "POST",
+                    //            contentType: false, // Not to set any content header
+                    //            processData: false, // Not to process data
+                    //            data: fileData,
+                    //            success: function (result) {
+                    //                alert(result);
+                    //            },
+                    //            error: function (err) {
+                    //                alert(err.statusText);
+                    //            }
+                    //        });
+                    //    } else {
+                    //        alert("FormData is not supported.");
+                    //    }
+                });
+            });
+
+            function doUpload() {
+
+                // Checking whether FormData is available in browser
+                if (window.FormData !== undefined) {
+
+                    var fileUpload = $("#FileUpload1").get(0);
+                    var files = fileUpload.files;
+
+                    // Create FormData object
+                    var fileData = new FormData();
+
+                    // Looping over all files and add it to FormData object
+                    for (var i = 0; i < files.length; i++) {
+                        fileData.append(files[i].name, files[i]);
+                    }
+
+                    // Adding one more key to FormData object
+                    var destinationFolder = document.getElementById("rootFolder").innerText;
+                    fileData.append('destinationFolder', destinationFolder);
+
+                    $.ajax({
+                        url: '/Default/UploadFiles',
+                        type: "POST",
+                        contentType: false, // Not to set any content header
+                        processData: false, // Not to process data
+                        data: fileData,
+                        success: function (result) {
+                            //alert(result);
+                            //UpdateStatusMessage(result);
+                        },
+                        error: function (err) {
+                            //alert(err.statusText);
+                            UpdateStatusMessage(err.statusText);
+                        }
+                    });
+                } else {
+                    //alert("FormData is not supported.");
+                    UpdateStatusMessage("FormData is not supported.");
+                }
+            }
+
+            //
+            // (Used outside of knockout)
+            //
+            function UpdateStatusMessage(msg) {
+                var obj = document.getElementById("statusMessage");
+                obj.innerText = msg;
+                if (msg == "")
+                    obj.classList.add("hidden");
+                else
+                    obj.classList.remove("hidden");
+            }
+
+        </script>
+</body>
+</html>
