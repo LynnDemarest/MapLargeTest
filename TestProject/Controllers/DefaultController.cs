@@ -47,6 +47,37 @@ namespace TestProject.Controllers
 
         }
 
+        //
+        // Adds the new path, which is guaranteed to be one segment longer than an existing path.
+        //
+        public JsonResult AddFolder(string newfolderpath)
+        {
+            try
+            {
+                newfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], newfolderpath);
+                System.IO.Directory.CreateDirectory(Server.MapPath(newfolderpath));
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return Json($"{newfolderpath} created.");
+        }
+        public JsonResult DeleteFolder(string folderpath)
+        {
+            try
+            {
+                folderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], folderpath);
+                System.IO.Directory.Delete(Server.MapPath(folderpath));
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return Json($"{folderpath} deleted.");
+        }
 
         public JsonResult getFolder(string p)
         {
@@ -101,14 +132,19 @@ namespace TestProject.Controllers
         }
 
         [HttpPost]
-        public string GetFile(string filepath, string filename)
+        public string GetFile(string filepath)
         {
             string rootPath = ConfigurationManager.AppSettings["rootFolder"];
-            string fullpath = Path.Combine(rootPath, filepath, filename);
-
-            string data = System.IO.File.ReadAllText(Server.MapPath(fullpath));
-
-            //data = HttpUtility.HtmlEncode(data);
+            string fullpath = Path.Combine(rootPath, filepath);
+            string data = "";
+            try
+            {
+                data = System.IO.File.ReadAllText(Server.MapPath(fullpath));
+            } catch (Exception ex)
+            {
+                throw;
+            }
+            
 
             return data;
         }

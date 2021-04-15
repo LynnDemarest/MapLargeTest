@@ -29,19 +29,21 @@
                     <div id="divSearchBody">
                         <input type="text" data-bind="value: searchPhrase" />
                         <!--
-                <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
-            -->
+                            <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
+                        -->
                         <button class="clickable" data-bind="click: doSearch.bind();">Search</button>
                         <!--
-                <button class="clickable" data-bind="click: doSearch();">Search</button>
-            -->
+                            <button class="clickable" data-bind="click: doSearch();">Search</button>
+                        -->
                         <ul data-bind="foreach: searchResults">
                             <div style="display:flex;">
                                 <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
                                 <img src="img/delete.svg" class="clickable deleteicon"
                                      data-bind="text: $data,
                                          click: $root.deleteFile" />
-
+                                <img src="img/download.svg" class="clickable downloadicon" title="Download file"
+                                     data-bind="text: $data,
+                                     click: $root.downloadFile" />
                                 <li class="clickable" data-bind="text: $data,
                                          click: $root.selectFile">
                                 </li>
@@ -55,7 +57,7 @@
                             Current Folder : <span id="rootFolder" data-bind="text: currentFolder"></span>
                         </div>
                         <div data-bind="if: canGoUp()">
-                            <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level." 
+                            <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
                                  class="clickable goupicon"
                                  data-bind="click: function() {goUp();}" />
                         </div>
@@ -63,7 +65,15 @@
                 </div>
                 <div class="divFolders">
                     <div class="header">
-                        Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
+                        <div style="display:flex;justify-content:space-between;">
+                            <div>
+                                Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
+                            </div>
+                            <div>
+                                <input type="text" id="newfolder" data-bind="value: newFolderName" />
+                                <button class="AddButton" data-bind="click: addFolder">Add</button>
+                            </div>
+                        </div>
                     </div>
                     <ul data-bind="foreach: folders">
                         <li class="clickable" data-bind="text: $data,
@@ -73,19 +83,25 @@
                     </ul>
                 </div>
                 <div class="divFiles">
-                    <div class="header">
-                        Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
+                    <div class="header" style="display:flex;justify-content:space-between;">
+                        <div>
+                            Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
+                        </div>
+                        <div data-bind="if: currentFolderCanBeDeleted()">
+                            <button data-bind="click: deleteFolder">Delete Folder</button>
+                        </div>
                     </div>
-
                     <ul data-bind="foreach: files">
                         <div style="display:flex;">
                             <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
-                            <img src="img/delete.svg" class="clickable deleteicon"
+                            <img src="img/delete.svg" class="clickable deleteicon" title="Delete file"
                                  data-bind="text: $data,
                                      click: $root.deleteFile" />
-                            <li class="clickable" data-bind="text: $data,
+                            <img src="img/download.svg" class="clickable downloadicon" title="Download file"
+                                 data-bind="text: $data,
+                                     click: $root.downloadFile" />
+                            <li class="clickable" data-bind="text: $root.getFileNameFromPath($data),
                                 click: $root.selectFile">
-
                             </li>
                         </div>
                     </ul>
@@ -104,12 +120,12 @@
             <div style="width:inherit;margin-left:1rem;">
                 <div class="header" style="display:flex;justify-content:space-between;">
                     <div>File Contents : <span data-bind="text: currentFile"></span></div>
-                    <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon" 
+                    <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
                          alt="Copy to clipboard" title="Copy to clipboard" />
                 </div>
                 <div class="divShowFile">
-                    <pre style="width:100%;border:0px solid red;" >
-                        <div data-bind="text: currentFileContents" id="currentFileContents"></div>
+                    <pre style="width:100%;border:0px solid red;">
+                    <div data-bind="text: currentFileContents" id="currentFileContents"></div>
                     </pre>
                 </div>
             </div>
@@ -218,6 +234,15 @@
                 obj.classList.add("hidden");
             else
                 obj.classList.remove("hidden");
+        }
+
+        function download(content, filename, contentType) {
+            if (!contentType) contentType = 'application/octet-stream';
+            var a = document.createElement('a');
+            var blob = new Blob([content], { 'type': contentType });
+            a.href = window.URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
         }
 
     </script>

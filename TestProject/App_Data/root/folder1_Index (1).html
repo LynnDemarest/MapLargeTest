@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Test Project : MapLarge</title>
@@ -16,12 +16,32 @@
 <body>
     <div id="knockoutContainer">
         <h1>MapLarge Programming Test</h1>
-        <div id="statusMessage" class="statusMessage hidden">
-            <span data-bind="text: statusMessage" ></span>
+        <div id="statusMessage" class="statusMessage">
+            <span data-bind="text: statusMessage"></span>
         </div>
-        <div>
-            <input type="text" data-bind="value: searchPhrase" /> <button class="clickable" data-bind="click: doSearch()">Search</button>
+        <div id="divSearchResults" class="divSearchResults">
+            <div class="header">
+                Search Results : (<span data-bind="text: searchResults.length"></span>)
+            </div>
+            <div id="divSearchBody">
+                <input type="text" data-bind="value: searchPhrase" /> <button class="clickable" data-bind="click: doSearch()">Search</button>
+                <ul data-bind="foreach: searchResults">
+                    <div style="display:flex;">
+                        <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
+                        <img src="img/delete.svg" class="clickable deleteicon"
+                             data-bind="text: $data,
+                                         click: $root.deleteFile" />
+
+                        <li class="clickable" data-bind="text: $data,
+                                         click: $root.selectFile">
+                        </li>
+                    </div>
+                </ul>
+            </div>
         </div>
+
+
+
         <div>
             <img src="img/upfolder.svg" alt="Go up one level." style="height:2rem;" class="clickable" data-bind="click: goUp();" />
             Current Folder : <span id="rootFolder" data-bind="text: rootFolder"></span>
@@ -37,19 +57,20 @@
                 </li>
             </ul>
         </div>
+
+
         <div class="divFiles">
             <div class="header">
                 Files : (<span data-bind="text: numberOfFiles"></span>)
             </div>
-            
-            <ul data-bind="foreach: files" >
+
+            <ul data-bind="foreach: files">
                 <div style="display:flex;">
-                    <div class="linenumber" data-bind="text: ($index() + 1 + '. ')"></div>
+                    <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
                     <img src="img/delete.svg" class="clickable deleteicon"
                          data-bind="text: $data,
-                                     click: $root.deleteFile"
-                         />
-                    &nbsp;&nbsp;&nbsp;
+                                     click: $root.deleteFile" />
+
                     <li class="clickable" data-bind="text: $data,
                                      click: $root.selectFile">
                     </li>
@@ -64,8 +85,7 @@
             <div class="uploadPanel">
                 <input type="file" id="FileUpload1" multiple />
                 <input type="button" id="btnUpload2" value="Upload Files"
-                       data-bind="click: $root.uploadFile"
-                       />
+                       data-bind="click: $root.uploadFile" />
             </div>
         </div>
 
