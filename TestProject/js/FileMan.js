@@ -15,7 +15,9 @@ function FileManModel(searchPhrase, rootFolder) {
         else
             return this.rootFolder();
     }, this);
-    //self.rootFolder = ko.observable("");
+
+    self.currentFile = ko.observable("");
+    self.currentFileContents = ko.observable("");
   
     self.folders = ko.observable([]);
     self.files = ko.observable([]);
@@ -39,7 +41,7 @@ function FileManModel(searchPhrase, rootFolder) {
         }
         newpath += folder;
         self.rootFolder(newpath);
-        //alert(newpath);
+        
         self.getFolderData();
     }
 
@@ -50,9 +52,50 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     // We want to read the file and download it to the browser.
     // 
-    self.selectFile = function (file) {
-        self.UpdateStatusMessage(file + " selected");
+    self.selectFile = async function (file) {
+        //self.UpdateStatusMessage(file + " selected");
+        self.currentFile(file);
+
+        await self.getCurrentFileContents();
     }
+    self.getCurrentFileContents = async () =>
+    {
+        //self.currentFileContents(`current file contents for ${self.currentFile()}`);
+
+        var rootFolder = self.rootFolder();
+        var filename = self.currentFile(); 
+
+        self.UpdateStatusMessage('Loading : ' + filename + ' in folder ' + rootFolder);
+
+        // https://api.jquery.com/jquery.ajax/
+        await $.ajax({
+            url: '/default/GetFile',
+            method: "POST",
+            data: { 'filepath': rootFolder, 'filename': filename }
+        }).done(function (res) {
+                //alert(res);
+                self.currentFileContents(res);
+                self.UpdateStatusMessage('Done loading : ' + filename + ' in folder ' + rootFolder);
+          })
+          .fail(function (err) {
+                self.UpdateStatusMessage('Error: ' + err);
+          });
+    }
+    //
+    // Copies the currently displayed file to the clipboard asynchronously.
+    //
+    self.copyToClipboard = async () =>
+    {
+        await navigator.clipboard.writeText(self.currentFileContents()).then(function () {
+            /* clipboard successfully set */
+            self.UpdateStatusMessage(`Copied ${self.currentFile()} to clipboard.`);
+        }, function () {
+            /* clipboard write failed */
+            self.UpdateStatusMessage(`Could not copy ${self.currentFile()} to clipboard.`);
+        });
+    }
+
+
     self.deleteFile = function (file) {
         //alert(file + " deleted");
         var path;
@@ -81,8 +124,8 @@ function FileManModel(searchPhrase, rootFolder) {
 
     }
     self.uploadFile = function () {
-        doUpload();
-        self.getFolderData();  // refresh
+        
+        doUpload().then( () => self.getFolderData() );  // refresh
     }
 
     self.goUp = () => {
@@ -152,26 +195,26 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     // Download the file clicked. 
     //
-    self.downloadFile(filename)
-    {
-        var url = "/default/GetFile";
+    //self.downloadFile(filename)
+    //{
+    //    var url = "/default/GetFile";
 
-        fetch(url)
-            .then(resp => resp.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                // the filename you want
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                self.UpdateStatusMessage('Your file has downloaded!');
-            })
-            .catch(() => alert('oh no!'));
-    }
+    //    fetch(url)
+    //        .then(resp => resp.blob())
+    //        .then(blob => {
+    //            const url = window.URL.createObjectURL(blob);
+    //            const a = document.createElement('a');
+    //            a.style.display = 'none';
+    //            a.href = url;
+    //            // the filename you want
+    //            a.download = filename;
+    //            document.body.appendChild(a);
+    //            a.click();
+    //            window.URL.revokeObjectURL(url);
+    //            self.UpdateStatusMessage('Your file has downloaded!');
+    //        })
+    //        .catch(() => alert('oh no!'));
+    //}
 
     // getFolderData
     // Gets folder data from the API, including list of folders and files.

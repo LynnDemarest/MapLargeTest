@@ -100,11 +100,20 @@ namespace TestProject.Controllers
             }
         }
 
-        //[HttpGet]
-        //public ActionResult GetFile(string filepath)
-        //{
+        [HttpPost]
+        public string GetFile(string filepath, string filename)
+        {
+            string rootPath = ConfigurationManager.AppSettings["rootFolder"];
+            string fullpath = Path.Combine(rootPath, filepath, filename);
 
-        //}
+            string data = System.IO.File.ReadAllText(Server.MapPath(fullpath));
+
+            //data = HttpUtility.HtmlEncode(data);
+
+            return data;
+        }
+
+       
 
 
 
