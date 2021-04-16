@@ -60,7 +60,7 @@
                         <div data-bind="if: canGoUp()">
                             <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
                                  class="clickable goupicon"
-                                 data-bind="click: function() {goUp();}" />
+                                 data-bind="click: function() {goUp();}"  onclick="event.stopPropagation()"/>
                         </div>
                     </div>
                 </div>
@@ -104,8 +104,8 @@
                             Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
                         </div>
                         <div>
-                            <input type="text" id="newfolder" data-bind="value: newFolderName" />
-                            <button class="AddButton" data-bind="click: addFolder">Add</button>
+                            <input type="text" id="newfolder" data-bind="value: newFolderName" onclick="event.stopPropagation()" />
+                            <button class="AddButton" data-bind="click: addFolder"  onclick="event.stopPropagation()">Add</button>
                         </div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                         Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
                     </div>
                     <div data-bind="if: currentFolderCanBeDeleted()">
-                        <button data-bind="click: deleteFolder">Delete Folder</button>
+                        <button data-bind="click: deleteFolder"  onclick="event.stopPropagation()">Delete Folder</button>
                     </div>
                 </div>
                 <ul data-bind="foreach: files">
@@ -159,7 +159,7 @@
             <div class="header" onclick="toggleNextDiv(this);" style="display:flex;justify-content:space-between;">
                 <div>File Contents : <span data-bind="text: currentFile"></span></div>
                 <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
-                     alt="Copy to clipboard" title="Copy to clipboard" />
+                     alt="Copy to clipboard" title="Copy to clipboard"  onclick="event.stopPropagation()" />
             </div>
             <div class="divShowFile">
                 <pre style="width:100%;border:0px solid red;">
@@ -288,9 +288,10 @@
         //
         function toggleNextDiv(obj) {
             var o = $(obj);
-            
-            var nxt = o.next();
-            nxt[0].hidden = !nxt[0].hidden;
+            if (obj.className == "header") {
+                var nxt = o.next();
+                nxt[0].hidden = !nxt[0].hidden;
+            }
         }
 
         //
