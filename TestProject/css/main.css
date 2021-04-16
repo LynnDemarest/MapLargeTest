@@ -19,6 +19,8 @@ ul {
     width: 20px;
     background-image: url('/img/folder.svg');
     margin-right: 10px;
+    top: 3px;
+    position:relative;
 }
 .fileUL li::before {
     content: '';
@@ -27,6 +29,8 @@ ul {
     width: 20px;
     background-image: url('/img/file.svg');
     margin-right:10px;
+    top:3px;
+    position:relative;
 }
 
 
@@ -124,9 +128,13 @@ footer {
     max-width:900px;
     overflow:scroll;
 }
+.divDirectoryTree {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
+}
 
-.uploadPanel{
-    padding:1rem;
+.uploadPanel {
+    padding: 1rem;
 }
 
 .header {
@@ -134,4 +142,5 @@ footer {
     color: white;
     font-weight:bold;
     padding:1rem;
+    z-index:-100;
 }

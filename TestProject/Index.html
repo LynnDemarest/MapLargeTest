@@ -22,8 +22,9 @@
                 <div id="statusMessage" class="statusMessage">
                     <span data-bind="text: statusMessage"></span>
                 </div>
+
                 <div id="divSearchResults" class="divSearchResults">
-                    <div class="header">
+                    <div class="header" onclick="toggleNextDiv(this);">
                         Search Current Folder : (<span data-bind="text: numberOfSearchResults"></span>) <span id="searchfolder" data-bind="text: currentFolder()"></span>
                     </div>
                     <div id="divSearchBody">
@@ -64,7 +65,7 @@
                     </div>
                 </div>
                 <div class="divDirectoryTree">
-                    <div class="header">
+                    <div class="header"  onclick="toggleNextDiv(this);">
                         Tree View : <span data-bind="text: DirectoryTree().path"></span>
                         <span data-bind="if: DirectoryTree().path === ''">root</span>
                     </div>
@@ -97,7 +98,7 @@
                 </div>
             </div>
             <div class="divFolders">
-                <div class="header">
+                <div class="header" onclick="toggleNextDiv(this);">
                     <div style="display:flex;justify-content:space-between;">
                         <div>
                             Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
@@ -109,6 +110,7 @@
                     </div>
                 </div>
                 <ul data-bind="foreach: folders">
+
                     <li class="folder clickable" data-bind="text: $data,
                                      click: $parent.selectFolder,
                                      attr: {id: 'folder_' + $index() }">
@@ -117,7 +119,7 @@
                 </ul>
             </div>
             <div class="divFiles">
-                <div class="header" style="display:flex;justify-content:space-between;">
+                <div class="header" onclick="toggleNextDiv(this);" style="display:flex;justify-content:space-between;">
                     <div>
                         Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
                     </div>
@@ -142,8 +144,8 @@
                     </div>
                 </ul>
             </div>
-            <div class="divUploadFiles">
-                <div class="header">
+            <div class="divUploadFiles" >
+                <div class="header" onclick="toggleNextDiv(this);">
                     Upload Files to <span data-bind="text: currentFolder"></span>
                 </div>
                 <div class="uploadPanel">
@@ -154,7 +156,7 @@
             </div>
         </div>
         <div style="width:inherit;margin-left:1rem;">
-            <div class="header" style="display:flex;justify-content:space-between;">
+            <div class="header" onclick="toggleNextDiv(this);" style="display:flex;justify-content:space-between;">
                 <div>File Contents : <span data-bind="text: currentFile"></span></div>
                 <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
                      alt="Copy to clipboard" title="Copy to clipboard" />
@@ -281,6 +283,15 @@
         $(document).ready(function () {
         });
 
+        //
+        //
+        //
+        function toggleNextDiv(obj) {
+            var o = $(obj);
+            
+            var nxt = o.next();
+            nxt[0].hidden = !nxt[0].hidden;
+        }
 
         //
         // drag events
