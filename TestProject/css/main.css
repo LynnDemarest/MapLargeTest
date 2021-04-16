@@ -1,15 +1,21 @@
 ﻿body {
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 ul {
-    list-style:none;
+    list-style: none;
+}
+
+.tinytextwhite {
+    color: white;
+    font-size: 0.7rem;
 }
 
 /* dragging */
 
-.dragEnter{
-    color:red;
+.dragEnter {
+    color: red;
+    border: 1px solid red;
 }
 
 .folderUL li::before {
@@ -20,50 +26,52 @@ ul {
     background-image: url('/img/folder.svg');
     margin-right: 10px;
     top: 3px;
-    position:relative;
+    position: relative;
 }
+
 .fileUL li::before {
     content: '';
     display: inline-block;
     height: 20px;
     width: 20px;
     background-image: url('/img/file.svg');
-    margin-right:10px;
-    top:3px;
-    position:relative;
+    margin-right: 10px;
+    top: 3px;
+    position: relative;
 }
 
 
-#knockoutContainer
-{
-    width:100%;
+#knockoutContainer {
+    width: 100%;
 }
 
-.currentfolder{
-    font-weight:bold;
-    font-size:1.2rem;
-    background-color:#666;
-    color:white;
-    padding:1rem;
-    margin-bottom:2px;
+.currentfolder {
+    font-weight: bold;
+    font-size: 1.2rem;
+    background-color: #666;
+    color: white;
+    padding: 1rem;
+    margin-bottom: 2px;
 }
 
-.statusMessage{
-    border:1px solid gray;
-    min-height:1rem;
+.statusMessage {
+    border: 1px solid gray;
+    min-height: 1rem;
     background-color: #eee;
-    padding:1rem;
-    margin-bottom:.5rem;
+    padding: 1rem;
+    margin-bottom: .5rem;
 }
-.hidden{
-    visibility:hidden;
+
+.hidden {
+    visibility: hidden;
 }
 
 .deleteicon {
-    height:1.3rem;
-    margin-left:1rem;
-    margin-right:1rem;
+    height: 1.3rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
 }
+
 .downloadicon {
     height: 1.3rem;
     margin-right: 1rem;
@@ -73,15 +81,16 @@ ul {
     height: 1rem;
     filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%);
 }
+
 .goupicon {
     height: 1.2rem;
     filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%);
 }
 
 .linenumber {
-    width:2rem;
-    text-align:right;
-    font-size:.9rem;
+    width: 2rem;
+    text-align: right;
+    font-size: .9rem;
 }
 
 .clickable:hover {
@@ -95,9 +104,9 @@ footer {
 }
 
 
-.divFolders{
-    border:1px solid gray;
-    margin-bottom:1rem;
+.divFolders {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
 }
 
 .divFiles {
@@ -110,24 +119,24 @@ footer {
     margin-bottom: 1rem;
 }
 
-#divSearchBody
-{
-    padding:1rem;
+#divSearchBody {
+    padding: 1rem;
 }
+
 .divUploadFiles {
     border: 1px solid gray;
     margin-bottom: 1rem;
-    
 }
 
-.divShowFile{
-    border:1px solid gray;
-    padding:1rem;
-    width:auto;
-    min-width:700px;
-    max-width:900px;
-    overflow:scroll;
+.divShowFile {
+    border: 1px solid gray;
+    padding: 1rem;
+    width: auto;
+    min-width: 700px;
+    max-width: 900px;
+    overflow: scroll;
 }
+
 .divDirectoryTree {
     border: 1px solid gray;
     margin-bottom: 1rem;
@@ -140,7 +149,11 @@ footer {
 .header {
     background: gray;
     color: white;
-    font-weight:bold;
-    padding:1rem;
-    z-index:-100;
+    font-weight: bold;
+    padding: 1rem;
+    z-index: -100;
 }
+
+    .header:hover {
+        cursor: pointer;
+    }

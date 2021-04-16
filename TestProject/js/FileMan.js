@@ -83,7 +83,8 @@ function FileManModel(searchPhrase, rootFolder) {
 
         if (self.filenameIsOKToDisplay(path)) {
 
-            self.UpdateStatusMessage('Loading : ' + path);
+            //self.UpdateStatusMessage('Loading : ' + path);
+            consolelog('Loading : ' + path);
 
             // https://api.jquery.com/jquery.ajax/
             await $.ajax({
@@ -93,7 +94,8 @@ function FileManModel(searchPhrase, rootFolder) {
             }).done(function (res) {
                 //alert(res);
                 self.currentFileContents(res);
-                self.UpdateStatusMessage('Done loading : ' + path);
+                //self.UpdateStatusMessage('Done loading : ' + path);
+                consolelog('Done loading : ' + path);
             })
                 .fail(function (err) {
                     self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.statusText}`);
@@ -122,7 +124,8 @@ function FileManModel(searchPhrase, rootFolder) {
             method: "POST",
             data: { 'newfolderpath': path }
         }).done(function (res) {
-            self.UpdateStatusMessage('Done creating : ' + path + ' ' + res);
+            //self.UpdateStatusMessage('Done creating : ' + path + ' ' + res);
+            consolelog('Done creating : ' + path + ' ' + res);
             //self.getFolderData();
             self.refreshBothLists();
         }).fail(function (err) {
@@ -208,7 +211,7 @@ function FileManModel(searchPhrase, rootFolder) {
         })
             .done(function (res) {
                 //debugger;
-                console.log(res);
+                consolelog(res);
                 self.UpdateStatusMessage(res);
 
                 self.goUp();
@@ -219,24 +222,63 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.doSearch();
             })
             .fail(function (err) {
-                console.log('Error: ' + err);
+                consolelog('Error: ' + err);
             });
 
     }
+    self.copyFile = function (frompath, topath) {
+        //alert("Would copy " + frompath + " to " + topath);
+        $.ajax({
+            url: '/default/CopyFile',
+            method: "POST",                // should always delete with POST 
+            data: { frompath, topath }
+        }).done(function (res) {
+            //debugger;
+            consolelog(res);
+            //self.UpdateStatusMessage(res);
+            //self.getFolderData();
+            self.refreshBothLists();
+            // TODO: Only do this if the file just deleted is in the search listing
+            // 
+            self.doSearch();
+        }).fail(function (err) {
+            consolelog('Error: ' + err);
+        });
+    }
+    self.moveFile = function (frompath, topath) {
+        //alert("Would move " + frompath + " to " + topath);
+        //return; 
+        $.ajax({
+            url: '/default/MoveFile',
+            method: "POST",                // should always delete with POST 
+            data: { frompath, topath  }
+        }).done(function (res) {
+                //debugger;
+                consolelog(res);
+                //self.UpdateStatusMessage(res);
+                //self.getFolderData();
+                self.refreshBothLists();
+                // TODO: Only do this if the file just deleted is in the search listing
+                // 
+                self.doSearch();
+         }).fail(function (err) {
+                consolelog('Error: ' + err);
+            });
 
+    }
 
     self.deleteFile = function (file) {
         var path;
         path = file;
 
         $.ajax({
-            url: '/default/deleteFile',
+            url: '/default/DeleteFile',
             method: "POST",                // should always delete with POST 
             data: { filepath: path }
         })
             .done(function (res) {
                 //debugger;
-                console.log(res);
+                consolelog(res);
                 self.UpdateStatusMessage(res);
                 //self.getFolderData();
                 self.refreshBothLists();
@@ -245,7 +287,8 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.doSearch();
             })
             .fail(function (err) {
-                console.log('Error: ' + err);
+                consolelog('Error: ' + err);
+                self.UpdateStatusMessage("Error: " + err)
             });
 
     }
@@ -253,8 +296,6 @@ function FileManModel(searchPhrase, rootFolder) {
     self.uploadFile = function () {
 
         doUpload().then(() => {
-            //self.getFolderData();
-            //self.getDirectoryTree();
             self.refreshBothLists();
         }).catch((err) => { self.UpdateStatusMessage(err) });  // refresh
     }
@@ -271,19 +312,23 @@ function FileManModel(searchPhrase, rootFolder) {
         //self.getFolderData();
         //self.getDirectoryTree();
         self.refreshBothLists();
-        if (self.rootFolder() != "") {
-            self.UpdateStatusMessage(`New root path is ${self.rootFolder()}`)
-        } else self.statusMessage(``);
+        //if (self.rootFolder() != "") {
+        //    self.UpdateStatusMessage(`Current folder: New root path is ${self.rootFolder()}`)
+        //} 
     }
 
+    //
+    //
+    //
+    //
     self.UpdateStatusMessage = function (msg) {
-        if (msg != "") {
-            self.statusMessage(msg);
-            document.getElementById("statusMessage").classList.remove("hidden");
-        } else {
-            // there's no message, so hide the panel
-            document.getElementById("statusMessage").classList.add("hidden");
-        }
+
+        if (msg === "")
+            self.statusMessage("");
+        else
+            self.statusMessage(self.statusMessage() + msg + "<hr/>");
+
+        //document.getElementById("statusMessage").classList.remove("hidden");
     }
 
     //
@@ -293,7 +338,7 @@ function FileManModel(searchPhrase, rootFolder) {
         return the_url.substring(0, the_url.lastIndexOf('\\'));
     }
 
-    self.doSearch = function () {
+    self.doSearch = async () => {
 
         var searchphrase = self.searchPhrase();
         if (searchphrase == undefined || searchphrase == "") {
@@ -306,7 +351,7 @@ function FileManModel(searchPhrase, rootFolder) {
         //alert(this.searchPhrase());
         var path = self.rootFolder();
 
-        $.ajax({
+        await $.ajax({
             url: '/default/searchFolder',
             method: "POST",
             data: { 'searchphrase': searchphrase, 'path': path }
@@ -342,12 +387,17 @@ function FileManModel(searchPhrase, rootFolder) {
 
     }
 
-    self.getDirectoryTree = function ()
+    self.refreshBothLists = async () => {
+        await self.getDirectoryTree();
+        await self.getFolderData();
+    }
+
+    self.getDirectoryTree = async function ()
     {
         // var path = self.rootFolder();
         var path = "";
 
-        $.ajax({
+        await $.ajax({
             url: '/default/getFullDirectoryTree',
             method: 'POST',
             data: { 'rootpath' : path }
@@ -370,10 +420,10 @@ function FileManModel(searchPhrase, rootFolder) {
     // Gets folder data from the API for a single folder, including list of folders and files.
     // The view is updated automatically via knockout observables.
     //
-    self.getFolderData = function () {
+    self.getFolderData = async () => {
         var path = self.rootFolder();
 
-        $.ajax({
+        await $.ajax({
             url: '/default/getFolder?p=' + path
         })
             .done(function (res) {
@@ -410,15 +460,12 @@ function FileManModel(searchPhrase, rootFolder) {
         } else { return ""; }
     }
 
-    self.refreshBothLists = () => {
-        self.getFolderData();
-        self.getDirectoryTree();
-    }
-    self.init = () => {
+   
+    self.init = async () => {
         if (self.searchPhrase() != "") {
-            self.doSearch();
+            await self.doSearch();
         }
-        self.refreshBothLists();
+        await self.refreshBothLists();
     }
     // Note: I have stopped these methods from being called automatically on startup by using javascript "bind,"
     //       like this:
