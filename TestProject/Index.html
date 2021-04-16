@@ -31,9 +31,9 @@
         <div style="display:flex;">
             <div style="width:500px;">
                 <div>
-                    <div class="currentfolder" style="display:flex;justify-content:space-between;">
+                    <div class="currentfolder" style="display:flex;">
                         <div>
-                            Current Folder : <span id="rootFolder" data-bind="text: currentFolder"></span>
+                            <div style="margin-right:10px;" id="rootFolder" data-bind="text: currentFolder"></div>
                         </div>
                         <div data-bind="if: canGoUp()">
                             <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
@@ -50,12 +50,19 @@
                     <div id="divSearchBody">
                         <input type="text" data-bind="value: searchPhrase" />
                         <!--
-                <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
-            -->
+                            Two ways of preventing event handlers from firing on startup.
+
+                            This standard click binding allows the doSearch() handler to fire on startup.
+                            <button class="clickable" data-bind="click: doSearch();">Search</button>
+
+                            This version fixes the issue
+                            <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
+
+                            But this is the recommended syntax:
+                        -->
                         <button class="clickable" data-bind="click: doSearch.bind();">Search</button>
-                        <!--
-                <button class="clickable" data-bind="click: doSearch();">Search</button>
-            -->
+
+
                         <ul data-bind="foreach: searchResults">
                             <div style="display:flex;">
                                 <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
@@ -87,7 +94,7 @@
                     <div class="header" onclick="toggleNext(this);">
                         Tree View
                         <!--span data-bind="text: DirectoryTree().path"></span>
-            <span data-bind="if: DirectoryTree().path === ''">root</span-->
+                        <span data-bind="if: DirectoryTree().path === ''">root</span-->
                         <br />
                         <span class="tinytextwhite">Drag and drop files and folders to move them. Hold down Ctrl key to copy.</span>
                     </div>
@@ -96,9 +103,9 @@
                         <script id="treeTemplate" type="text/html">
                             <ul class="folderUL">
                                 <!--<div data-bind="if: $data.path !== undefined;">-->
-                                <li class="folder clickable" data-bind="text: $data.path,
+                                <li class="folder clickable" draggable="true" data-bind="text: $data.path,
                                          click: $root.selectFolderObject,
-                                         attr: {id: 'folder_' + $data.path }">
+                                         attr: {id: 'folder_' + $data.path, fullpath: $data.path  }">
                                 </li>
                                 <!--</div>-->
 
@@ -183,16 +190,16 @@
                     </pre>
                 </div>
             </div>
-    </div>
-    <footer>
-        Icon by <a href="https://freeicons.io/profile/3117">1273358166187522</a> on <a href="https://freeicons.io">freeicons.io</a>
-    </footer>
+        </div>
+        <footer>
+            Icon by <a href="https://freeicons.io/profile/3117">1273358166187522</a> on <a href="https://freeicons.io">freeicons.io</a>
+        </footer>
     </div>
     <script>
 
         const bLogging = true;
 
-        // To pass searchPhrase and rootFolder on the URL: 
+        // To pass searchPhrase and rootFolder on the URL:
         //      /Index.html#searchPhrase&rootFolder
         //     To search for .txt and go to folder1 (note: search always searches all subfolders)
         //
@@ -206,14 +213,14 @@
         //
         //
         var model = { viewModel: new FileManModel(searchPhrase, rootFolder) };
-        ko.applyBindings( model.viewModel, document.querySelector("#knockoutContainer"));
+        ko.applyBindings(model.viewModel, document.querySelector("#knockoutContainer"));
 
         //ko.applyBindings(new FileManModel(searchPhrase, rootFolder), document.querySelector("#knockoutContainer"));
 
         //
         // Console logs can be turned on and off.
         //
-        
+
         function consolelog(msg) {
             if (bLogging == true)
                 console.log(msg);
@@ -325,9 +332,9 @@
         });
 
         // toggleNext
-        // Hides and shows the next element when the one before it is clicked. 
+        // Hides and shows the next element when the one before it is clicked.
         // <div onclick='toggleNextDiv(this);'></div><div id="divtotoggle"></div>
-        // This could be done by passing the ID of the element to hide, but that 
+        // This could be done by passing the ID of the element to hide, but that
         function toggleNext(obj) {
             // convert obj to JQuery object to get next()
             var nxt = $(obj).next();

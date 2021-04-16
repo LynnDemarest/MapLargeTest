@@ -13,6 +13,8 @@ function updateDragClassesAndHandlers() {
     }
     const folders = document.querySelectorAll('.folder');
     for (var d of folders) {
+        d.addEventListener("dragstart", dragStart);
+        d.addEventListener("dragend", dragEnd);
         d.addEventListener("dragover", dragOver)
         d.addEventListener("dragenter", dragEnter)
         d.addEventListener("dragleave", dragLeave)

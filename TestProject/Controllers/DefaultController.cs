@@ -175,7 +175,9 @@ namespace TestProject.Controllers
             try
             {
                 fromfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], fromfolderpath);
-                tofolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], tofolderpath);
+                string dirname = Path.GetFileName(fromfolderpath);
+                if (dirname == "") dirname = "root";
+                tofolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], tofolderpath, dirname);
                 fromfolderpath = Server.MapPath(fromfolderpath);
                 tofolderpath = Server.MapPath(tofolderpath);
 
@@ -195,12 +197,14 @@ namespace TestProject.Controllers
             try
             {
                 fromfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], fromfolderpath);
-                tofolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], tofolderpath);
+                string dirname = Path.GetFileName(fromfolderpath);
+                if (dirname == "") dirname = "root";
+                tofolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], tofolderpath, dirname);
                 fromfolderpath = Server.MapPath(fromfolderpath);
                 tofolderpath = Server.MapPath(tofolderpath);
 
                 // TODO: Copy doesn't exist, so we have to write our own?
-                // System.IO.Directory.Copy(fromfolderpath, tofolderpath);
+                // 
                 DirectoryCopy(fromfolderpath, tofolderpath, true);
             }
             catch (Exception ex)
@@ -211,7 +215,11 @@ namespace TestProject.Controllers
             return Json($"Folder moved.");
         }
 
-        // https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
+
+        // DirectoryCopy
+        //
+        // See: https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
+        //
         private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
             // Get the subdirectories for the specified directory.
@@ -308,16 +316,28 @@ namespace TestProject.Controllers
             {
                 string root = ConfigurationManager.AppSettings["rootFolder"];
 
-                // add filename to the topath 
-                string filename = Path.GetFileName(frompath);
-                topath = Path.Combine(topath, filename);
+                string fromdir = Server.MapPath(Path.Combine(root,frompath));
+                string todir = Server.MapPath(Path.Combine(root, topath));
 
-                string fullfrompath = Server.MapPath(Path.Combine(root, frompath));
-                string fulltopath = Server.MapPath(Path.Combine(root, topath));
+                if (Directory.Exists(fromdir) && Directory.Exists(todir))
+                {
+                    return MoveFolder(frompath, topath);
+                    // we're moving directories!
+                    // return Json($"File moved from {frompath} to {topath}");
+                }
+                else
+                {
+                    // add filename to the topath 
+                    string filename = Path.GetFileName(frompath);
+                    topath = Path.Combine(topath, filename);
 
-                System.IO.File.Move(fullfrompath, fulltopath);
+                    string fullfrompath = Server.MapPath(Path.Combine(root, frompath));
+                    string fulltopath = Server.MapPath(Path.Combine(root, topath));
 
-                return Json($"File moved from {frompath} to {topath}");
+                    System.IO.File.Move(fullfrompath, fulltopath);
+
+                    return Json($"File moved from {frompath} to {topath}");
+                }
             }
             catch (Exception ex)
             {
@@ -331,16 +351,28 @@ namespace TestProject.Controllers
             {
                 string root = ConfigurationManager.AppSettings["rootFolder"];
                 
-                // add filename to the topath 
-                string filename = Path.GetFileName(frompath);
-                topath = Path.Combine(topath, filename);
+                string fromdir = Server.MapPath(Path.Combine(root, frompath));
+                string todir = Server.MapPath(Path.Combine(root, topath));
 
-                string fullfrompath = Server.MapPath(Path.Combine(root, frompath));
-                string fulltopath = Server.MapPath(Path.Combine(root, topath));
+                if (Directory.Exists(fromdir) && Directory.Exists(todir))
+                {
+                    return CopyFolder(frompath, topath);
+                    // we're moving directories!
+                    // return Json($"File moved from {frompath} to {topath}");
+                }
+                else
+                {
+                    // add filename to the topath 
+                    string filename = Path.GetFileName(frompath);
+                    topath = Path.Combine(topath, filename);
 
-                System.IO.File.Copy(fullfrompath, fulltopath);
+                    string fullfrompath = Server.MapPath(Path.Combine(root, frompath));
+                    string fulltopath = Server.MapPath(Path.Combine(root, topath));
 
-                return Json($"File copied from {frompath} to {topath}");
+                    System.IO.File.Copy(fullfrompath, fulltopath);
+
+                    return Json($"File copied from {frompath} to {topath}");
+                }
             }
             catch (Exception ex)
             {

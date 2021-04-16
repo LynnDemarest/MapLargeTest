@@ -339,7 +339,7 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
     self.doSearch = async () => {
-
+        //alert("Search called");
         var searchphrase = self.searchPhrase();
         if (searchphrase == undefined || searchphrase == "") {
             self.searchPhrase("");
@@ -368,46 +368,48 @@ function FileManModel(searchPhrase, rootFolder) {
                     } else obj.classList.remove("hidden");
                 }
 
-                self.updateUrl();
-            //    var location = document.location.href;
-            //    if (location.indexOf("#") != -1) {
-            //        document.location = location.split("#")[0] + "#" + encodeURIComponent(searchphrase) + "&" + self.rootFolder();
-            //    }
+                self.updateUrlWithState();
             })
             .fail(function (err) {
                 self.UpdateStatusMessage('Error: ' + err);
             });
     }
 
-    self.updateUrl = function () {
+    //
+    // Adds data after # in url to hold the state, in case a user wants to share a particular search or rootFolder.
+    //
+    self.updateUrlWithState = function () {
         var location = document.location.href;
-        //if (location.indexOf("#") != -1) {
-            document.location = location.split("#")[0] + "#" + self.searchPhrase() + "&" + self.rootFolder();
-        //}
-
+        document.location = location.split("#")[0] + "#" + self.searchPhrase() + "&" + self.rootFolder();
     }
 
+    //
+    // This makes ajax calls to refresh both displays
+    //
     self.refreshBothLists = async () => {
-        await self.getDirectoryTree();
-        await self.getFolderData();
+        await self.getDirectoryTree();  // tree view
+        await self.getFolderData();     // folder/file panel view 
     }
 
+    //
+    // Gets a JSON object representing a tree structure. 
+    // This object is displayed by a recursive knockoutJS template.
+    // The tree always starts at the root folder, but this is changeable.
+    //
     self.getDirectoryTree = async function ()
     {
-        // var path = self.rootFolder();
         var path = "";
-
         await $.ajax({
             url: '/default/getFullDirectoryTree',
             method: 'POST',
             data: { 'rootpath' : path }
         }).done(function (res) {
-            if (path == "") path = "root";
+            //if (path == "") path = "root";
 
             // To view the json data, uncomment this and run the program.
             // self.currentFileContents(JSON.stringify(res, null, '\t'));
 
-            self.DirectoryTree(res);
+            self.DirectoryTree(res);  // knockoutJS template works its magic 
                         
           }).fail(function (err) {
                 self.UpdateStatusMessage('Error: ' + err);
@@ -442,7 +444,7 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.numberOfFiles(res.files.length);
                 self.numberOfFolders(res.folders.length);
 
-                self.updateUrl();
+                self.updateUrlWithState();
                 //
                 // after files and folders are created, add drag and drop stuff
                 //
