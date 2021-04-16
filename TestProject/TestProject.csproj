@@ -87,6 +87,10 @@
   <ItemGroup>
     <Content Include="css\main.css" />
     <Content Include="Global.asax" />
+    <Content Include="img\copy.svg" />
+    <Content Include="img\delete.svg" />
+    <Content Include="img\download.svg" />
+    <Content Include="img\upfolder.svg" />
     <Content Include="Index.html" />
     <Content Include="js\FileMan.js" />
     <Content Include="Web.config" />

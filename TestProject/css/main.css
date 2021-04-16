@@ -6,6 +6,30 @@ ul {
     list-style:none;
 }
 
+/* dragging */
+
+.dragEnter{
+    color:red;
+}
+
+.folderUL li::before {
+    content: '';
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    background-image: url('/img/folder.svg');
+    margin-right: 10px;
+}
+.fileUL li::before {
+    content: '';
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    background-image: url('/img/file.svg');
+    margin-right:10px;
+}
+
+
 #knockoutContainer
 {
     width:100%;

@@ -24,7 +24,7 @@
                 </div>
                 <div id="divSearchResults" class="divSearchResults">
                     <div class="header">
-                        Search : (<span data-bind="text: numberOfSearchResults"></span>)
+                        Search Current Folder : (<span data-bind="text: numberOfSearchResults"></span>) <span id="searchfolder" data-bind="text: currentFolder()"></span>
                     </div>
                     <div id="divSearchBody">
                         <input type="text" data-bind="value: searchPhrase" />
@@ -63,76 +63,112 @@
                         </div>
                     </div>
                 </div>
-                <div class="divFolders">
+                <div class="divDirectoryTree">
                     <div class="header">
-                        <div style="display:flex;justify-content:space-between;">
-                            <div>
-                                Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
-                            </div>
-                            <div>
-                                <input type="text" id="newfolder" data-bind="value: newFolderName" />
-                                <button class="AddButton" data-bind="click: addFolder">Add</button>
-                            </div>
-                        </div>
+                        Tree View : <span data-bind="text: DirectoryTree().path"></span>
+                        <span data-bind="if: DirectoryTree().path === ''">root</span>
                     </div>
-                    <ul data-bind="foreach: folders">
-                        <li class="clickable" data-bind="text: $data,
-                                     click: $parent.selectFolder ">
+                    <div>
+                        <!-- DirectoryTree template -->
+                        <script id="treeTemplate" type="text/html">
+                            <ul class="folderUL">
+                                <!--<div data-bind="if: $data.path !== undefined;">-->
+                                <li class="folder clickable" data-bind="text: $data.path,
+                                         click: $root.selectFolderObject,
+                                         attr: {id: 'folder_' + $data.path }">
+                                </li>
+                                <!--</div>-->
 
-                        </li>
+                            <ul data-bind="foreach: $data.files" class="fileUL">
+
+                                <li class="clickable file" draggable="true"
+                                    data-bind="text: $root.getFileNameFromPath($data),
+                                            click: $root.selectFile,
+                                            attr: {id: 'file_' + $index(), fullpath: $data }">
+                                </li>
+                            </ul>
+                            <!-- ko template: { name: 'treeTemplate', foreach: $data.folders } -->
+                            <!-- /ko -->
+                    </li>
                     </ul>
-                </div>
-                <div class="divFiles">
-                    <div class="header" style="display:flex;justify-content:space-between;">
-                        <div>
-                            Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
-                        </div>
-                        <div data-bind="if: currentFolderCanBeDeleted()">
-                            <button data-bind="click: deleteFolder">Delete Folder</button>
-                        </div>
-                    </div>
-                    <ul data-bind="foreach: files">
-                        <div style="display:flex;">
-                            <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
-                            <img src="img/delete.svg" class="clickable deleteicon" title="Delete file"
-                                 data-bind="text: $data,
-                                     click: $root.deleteFile" />
-                            <img src="img/download.svg" class="clickable downloadicon" title="Download file"
-                                 data-bind="text: $data,
-                                     click: $root.downloadFile" />
-                            <li class="clickable" data-bind="text: $root.getFileNameFromPath($data),
-                                click: $root.selectFile">
-                            </li>
-                        </div>
-                    </ul>
-                </div>
-                <div class="divUploadFiles">
-                    <div class="header">
-                        Upload Files to <span data-bind="text: currentFolder"></span>
-                    </div>
-                    <div class="uploadPanel">
-                        <input type="file" id="FileUpload1" multiple />
-                        <input type="button" id="btnUpload2" value="Upload Files"
-                               data-bind="click: function () {$root.uploadFile();}" />
-                    </div>
+                    </script>
+                    <!-- -->
+                    <div data-bind="template: { name: 'treeTemplate', data: DirectoryTree() }"></div>
                 </div>
             </div>
-            <div style="width:inherit;margin-left:1rem;">
-                <div class="header" style="display:flex;justify-content:space-between;">
-                    <div>File Contents : <span data-bind="text: currentFile"></span></div>
-                    <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
-                         alt="Copy to clipboard" title="Copy to clipboard" />
+            <div class="divFolders">
+                <div class="header">
+                    <div style="display:flex;justify-content:space-between;">
+                        <div>
+                            Folders in <span data-bind="text: currentFolder"></span>: (<span data-bind="text: numberOfFolders"></span>)
+                        </div>
+                        <div>
+                            <input type="text" id="newfolder" data-bind="value: newFolderName" />
+                            <button class="AddButton" data-bind="click: addFolder">Add</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="divShowFile">
-                    <pre style="width:100%;border:0px solid red;">
-                    <div data-bind="text: currentFileContents" id="currentFileContents"></div>
-                    </pre>
+                <ul data-bind="foreach: folders">
+                    <li class="folder clickable" data-bind="text: $data,
+                                     click: $parent.selectFolder,
+                                     attr: {id: 'folder_' + $index() }">
+
+                    </li>
+                </ul>
+            </div>
+            <div class="divFiles">
+                <div class="header" style="display:flex;justify-content:space-between;">
+                    <div>
+                        Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
+                    </div>
+                    <div data-bind="if: currentFolderCanBeDeleted()">
+                        <button data-bind="click: deleteFolder">Delete Folder</button>
+                    </div>
+                </div>
+                <ul data-bind="foreach: files">
+                    <div style="display:flex;">
+                        <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
+                        <img src="img/delete.svg" class="clickable deleteicon" title="Delete file"
+                             data-bind="text: $data,
+                                     click: $root.deleteFile" />
+                        <img src="img/download.svg" class="clickable downloadicon" title="Download file"
+                             data-bind="text: $data,
+                                     click: $root.downloadFile" />
+                        <li class="clickable file" draggable="true"
+                            data-bind="text: $root.getFileNameFromPath($data),
+                                click: $root.selectFile,
+                                attr: {id: 'file_' + $index(), fullpath: $data }">
+                        </li>
+                    </div>
+                </ul>
+            </div>
+            <div class="divUploadFiles">
+                <div class="header">
+                    Upload Files to <span data-bind="text: currentFolder"></span>
+                </div>
+                <div class="uploadPanel">
+                    <input type="file" id="FileUpload1" multiple />
+                    <input type="button" id="btnUpload2" value="Upload Files"
+                           data-bind="click: function () {$root.uploadFile();}" />
                 </div>
             </div>
         </div>
-        <footer>
-            Icon by <a href="https://freeicons.io/profile/3117">1273358166187522</a> on <a href="https://freeicons.io">freeicons.io</a>
-        </footer>
+        <div style="width:inherit;margin-left:1rem;">
+            <div class="header" style="display:flex;justify-content:space-between;">
+                <div>File Contents : <span data-bind="text: currentFile"></span></div>
+                <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
+                     alt="Copy to clipboard" title="Copy to clipboard" />
+            </div>
+            <div class="divShowFile">
+                <pre style="width:100%;border:0px solid red;">
+                <div data-bind="text: currentFileContents" id="currentFileContents"></div>
+                    </pre>
+            </div>
+        </div>
+    </div>
+    <footer>
+        Icon by <a href="https://freeicons.io/profile/3117">1273358166187522</a> on <a href="https://freeicons.io">freeicons.io</a>
+    </footer>
     </div>
     <script>
         //alert("document.location = " + document.location);
@@ -175,12 +211,7 @@
         }
 
 
-        $(document).ready(function () {
-            //$('#btnUpload').click(function () {
-            //    doUpload();
-            //});
 
-        });
 
         async function doUpload() {
 
@@ -189,6 +220,7 @@
 
                 var fileUpload = $("#FileUpload1").get(0);
                 var files = fileUpload.files;
+                throw "No file selected to upload.";
 
                 // Create FormData object
                 var fileData = new FormData();
@@ -211,7 +243,7 @@
                     data: fileData,
                     success: function (result) {
                         //alert(result);
-                        //UpdateStatusMessage(result);
+                        UpdateStatusMessage(result);
                     },
                     error: function (err) {
                         //alert(err.statusText);
@@ -243,6 +275,78 @@
             a.href = window.URL.createObjectURL(blob);
             a.download = filename;
             a.click();
+        }
+
+
+        $(document).ready(function () {
+        });
+
+
+        //
+        // drag events
+        //
+        //var elementBeingDragged;
+        //var elementBeingTargeted;
+
+        function updateDragClassesAndHandlers() {
+            const files = document.querySelectorAll(".file");
+            for (var f of files) {
+                f.addEventListener("dragstart", dragStart);
+                f.addEventListener("dragend", dragEnd);
+                //f.addEventListener("drop", dragDrop);
+            }
+            const folders = document.querySelectorAll('.folder');
+            for (var d of folders) {
+                d.addEventListener("dragover", dragOver)
+                //d.addEventListener("dragenter", dragEnter)
+                //d.addEventListener("dragleave", dragLeave)
+                d.addEventListener("drop", dragDrop);
+            }
+
+        }
+        function dragStart(e) {
+            console.log("dragStart currentTarget.id = " + e.currentTarget.id);
+            console.log("dragStart target.id = " + e.target.id);
+            e.dataTransfer.setData("text", e.target.id);
+            console.log("text set to " + e.target.id);
+        }
+        function dragEnd(e) {
+            console.log("dragEnd currentTarget.id = " + e.currentTarget.id);
+            console.log("dragEnd target.id = " + e.target.id);
+            console.log("text = " + e.dataTransfer.getData("text"));
+
+        }
+        function dragDrop(e) {
+            e.preventDefault();
+            console.log("dragDrop target.id = " + e.target.id);  // folder_0
+            console.log("dragDrop currentTarget = " + JSON.stringify(e.currentTarget));
+
+            var file = e.dataTransfer.getData("text");
+            console.log("text = " + file);
+
+            var frompath, topath;
+            frompath = document.getElementById(file).attributes.fullpath.textContent;
+            topath = document.getElementById(e.target.id).innerText;
+            alert("Would move " + frompath + " to " + topath);
+        }
+        function dragOver(e) {
+            e.preventDefault();
+            console.log("dragOver currentTarget.id = " + e.currentTarget.id);
+            console.log("dragOver target.id = " + e.target.id);
+        }
+        function dragEnter(e) {
+            e.preventDefault();
+            console.log("dragEnter currentTarget.id = " + e.currentTarget.id);
+            console.log("dragEnter target.id = " + e.target.id);
+            e.currentTarget.classList.add("dragEnter");
+            e.dataTransfer.setData("text", e.target.id);
+
+        }
+        function dragLeave(e) {
+            console.log("dragLeave currentTarget.id = " + e.currentTarget.id);
+            console.log("dragLeave target.id = " + e.target.id);
+            e.currentTarget.classList.remove("dragEnter");
+            //elementBeingTargeted = undefined;
         }
 
     </script>

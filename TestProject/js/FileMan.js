@@ -10,7 +10,9 @@ function FileManModel(searchPhrase, rootFolder) {
     self.rootFolder = ko.observable(rootFolder);
 
     // to add a new folder 
-    self.newFolderName = ko.observable("")
+    self.newFolderName = ko.observable("");
+
+    self.DirectoryTree = ko.observableArray();
 
     self.currentFolder = ko.computed(function () {
         if (self.rootFolder() == "")
@@ -24,10 +26,10 @@ function FileManModel(searchPhrase, rootFolder) {
 
     //self.downloadFileContents = ko.observable(""); // not displayed, so big files and binary files work
 
-    self.folders = ko.observable([]);
-    self.files = ko.observable([]);
+    self.folders = ko.observableArray();
+    self.files = ko.observableArray();
 
-    self.searchResults = ko.observable([]);
+    self.searchResults = ko.observableArray();
     self.numberOfSearchResults = ko.observable(0);
 
     self.numberOfFolders = ko.observable(0);
@@ -46,6 +48,16 @@ function FileManModel(searchPhrase, rootFolder) {
         newpath += folder;
         self.rootFolder(newpath);
 
+        self.getFolderData();
+    }
+    self.selectFolderObject = function (folder) {
+        //var newpath = self.rootFolder();
+        //if (newpath != "") {
+        //    newpath += "\\";
+        //}
+        //newpath += folder.path;
+        //self.rootFolder(newpath);
+        self.rootFolder(folder.path);
         self.getFolderData();
     }
 
@@ -100,7 +112,7 @@ function FileManModel(searchPhrase, rootFolder) {
         var root = self.rootFolder();
         var newfolder = self.newFolderName();
 
-        if (newfolder == "") return; 
+        if (newfolder == "") return;
 
         if (root != "") {
             path = root + "\\" + self.newFolderName();
@@ -114,8 +126,8 @@ function FileManModel(searchPhrase, rootFolder) {
             self.UpdateStatusMessage('Done creating : ' + path + ' ' + res);
             self.getFolderData();
         }).fail(function (err) {
-                self.UpdateStatusMessage(`${path} could not be added. Error: ${err.statusText}`);
-            });
+            self.UpdateStatusMessage(`${path} could not be added. Error: ${err.statusText}`);
+        });
 
     }
 
@@ -158,8 +170,7 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.UpdateStatusMessage('Error: ' + err.statusText);
             });
     }
-    self.GetContentTypeForFilename = (filename) =>
-    {
+    self.GetContentTypeForFilename = (filename) => {
         return ""; // TODO: finish this! 
     }
 
@@ -184,8 +195,7 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
 
-    self.CalcPath = (file) =>
-    {
+    self.CalcPath = (file) => {
         var path;
         if (file.indexOf("\\") != -1) {
             // file has path included, so do nothing
@@ -199,7 +209,7 @@ function FileManModel(searchPhrase, rootFolder) {
                 path = self.rootFolder() + "\\" + file;
             } else path = file;
         }
-        return path; 
+        return path;
     }
 
     self.currentFolderCanBeDeleted = () => {
@@ -209,7 +219,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.deleteFolder = function () {
 
         var path = self.rootFolder();  // TODO: rename to current folder 
-        
+
         $.ajax({
             url: '/default/DeleteFolder',
             method: "POST",                // should always delete with POST 
@@ -250,16 +260,20 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.getFolderData();
                 // TODO: Only do this if the file just delete is in the search listing
                 // 
-                self.doSearch();           
+                self.doSearch();
             })
             .fail(function (err) {
                 console.log('Error: ' + err);
             });
 
     }
+
     self.uploadFile = function () {
 
-        doUpload().then(() => self.getFolderData());  // refresh
+        doUpload().then(() => {
+            self.getFolderData();
+            self.getDirectoryTree();
+        }).catch((err) => { self.UpdateStatusMessage(err) });  // refresh
     }
 
     self.goUp = () => {
@@ -285,7 +299,7 @@ function FileManModel(searchPhrase, rootFolder) {
             document.getElementById("statusMessage").classList.add("hidden");
         }
     }
-    
+
     //
     // Used to go up a folder level. 
     //
@@ -327,7 +341,28 @@ function FileManModel(searchPhrase, rootFolder) {
             });
     }
 
+    self.getDirectoryTree = function ()
+    {
+        var path = self.rootFolder();
+
+        $.ajax({
+            url: '/default/getFullDirectoryTree',
+            method: 'POST',
+            data: { 'rootpath' : path }
+        }).done(function (res) {
+            if (path == "") path = "root";
+
+            self.currentFileContents(JSON.stringify(res, null, '\t'));
+
+            self.DirectoryTree(res);
+                        
+          }).fail(function (err) {
+                self.UpdateStatusMessage('Error: ' + err);
+            });
+    }
+
     
+
     // getFolderData
     // Gets folder data from the API for a single folder, including list of folders and files.
     // The view is updated automatically via knockout observables.
@@ -353,6 +388,11 @@ function FileManModel(searchPhrase, rootFolder) {
 
                 self.numberOfFiles(res.files.length);
                 self.numberOfFolders(res.folders.length);
+
+                //
+                // after files and folders are created, add drag and drop stuff
+                //
+                updateDragClassesAndHandlers();
             })
             .fail(function (err) {
                 self.UpdateStatusMessage('Error: ' + err);
@@ -360,8 +400,10 @@ function FileManModel(searchPhrase, rootFolder) {
     };
 
     self.getFileNameFromPath = (path) => {
-        var pieces = path.split("\\");
-        return pieces[pieces.length - 1];
+        if (path != undefined) {
+            var pieces = path.split("\\");
+            return pieces[pieces.length - 1];
+        } else { return ""; }
     }
 
     // Note: I have stopped these methods from being called automatically on startup by using javascript "bind,"
@@ -376,7 +418,16 @@ function FileManModel(searchPhrase, rootFolder) {
     if (self.searchPhrase() != "") {
         self.doSearch();
     }
+
+    self.getDirectoryTree();
 }
+
+class FolderTree {
+    path = "";
+    folders = [];
+    files = [];
+}
+
 
 //var FileManModel = {
 //    rootFolder: ko.observable(""),
