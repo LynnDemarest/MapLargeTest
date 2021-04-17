@@ -185,7 +185,7 @@ namespace TestProject.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                return Json("Folder was not moved. " + ex.Message);
             }
 
             return Json($"Folder moved.");
@@ -209,7 +209,7 @@ namespace TestProject.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                return Json("Error: " + ex.Message);
             }
 
             return Json($"Folder moved.");
@@ -341,7 +341,7 @@ namespace TestProject.Controllers
             }
             catch (Exception ex)
             {
-                return Json("Error occurred. Error details: " + ex.Message);
+                throw new Exception("Error: " + ex.Message);
             }
 
         }
@@ -376,7 +376,8 @@ namespace TestProject.Controllers
             }
             catch (Exception ex)
             {
-                return Json("Error occurred. Error details: " + ex.Message);
+                //throw new Exception("Error: " + ex.Message);
+                return Json($"File could not be copied. Error: " + ex.Message);
             }
         }
 

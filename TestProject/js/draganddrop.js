@@ -1,27 +1,40 @@
 ﻿//
 // drag and drop handling 
 //
-//var elementBeingDragged;
-//var elementBeingTargeted;
-
+// 
+//
+//
 function updateDragClassesAndHandlers() {
     const files = document.querySelectorAll(".file");
     for (var f of files) {
         f.addEventListener("dragstart", dragStart);
         f.addEventListener("dragend", dragEnd);
-        //f.addEventListener("drop", dragDrop);
     }
     const folders = document.querySelectorAll('.folder');
     for (var d of folders) {
         d.addEventListener("dragstart", dragStart);
         d.addEventListener("dragend", dragEnd);
-        d.addEventListener("dragover", dragOver)
-        d.addEventListener("dragenter", dragEnter)
-        d.addEventListener("dragleave", dragLeave)
+
+        d.addEventListener("dragover", dragOver);
+        d.addEventListener("dragenter", dragEnter);
+        d.addEventListener("dragleave", dragLeave);
         d.addEventListener("drop", dragDrop);
     }
-
+    const trashcans = document.querySelectorAll('#divTrash');
+    for (var t of trashcans) {
+        //t.addEventListener("dragstart", dragStart);
+        //t.addEventListener("dragend", dragEnd);
+        t.addEventListener("dragover", dragOver);
+        t.addEventListener("dragenter", dragEnterTrash)
+        t.addEventListener("dragleave", dragLeaveTrash)
+        t.addEventListener("drop", dragDelete);
+    }
+    
 }
+
+//
+//
+//
 function dragStart(e) {
     console.log("dragStart currentTarget.id = " + e.currentTarget.id);
     console.log("dragStart target.id = " + e.target.id);
@@ -30,12 +43,37 @@ function dragStart(e) {
     e.dataTransfer.setData("text", fullpath);
     console.log("text set to " + fullpath);
 }
+
+//
+//
+//
 function dragEnd(e) {
     //console.log("dragEnd currentTarget.id = " + e.currentTarget.id);
     //console.log("dragEnd target.id = " + e.target.id);
     //console.log("text = " + e.dataTransfer.getData("text"));
 
 }
+
+function dragDelete(e) {
+    //alert(JSON.stringify(e));
+    var frompath = e.dataTransfer.getData("text");
+    //alert(frompath);
+
+    e.currentTarget.classList.remove("trashiconhover");
+
+    model.viewModel.deleteFile(frompath);
+}
+function dragEnterTrash(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add("trashiconhover");
+
+}
+function dragLeaveTrash(e) {
+    e.currentTarget.classList.remove("trashiconhover");
+}
+//
+//
+//
 function dragDrop(e) {
     //e.preventDefault();
     //console.log("dragDrop target.id = " + e.target.id);  // folder_0
@@ -67,6 +105,10 @@ function dragDrop(e) {
     }
     //updateDragClassesAndHandlers();
 }
+
+//
+//
+//
 function copyFile(frompath, topath) {
     //alert("Would move " + frompath + " to " + topath);
     //return; 
@@ -76,7 +118,7 @@ function copyFile(frompath, topath) {
         data: { frompath, topath }
     }).done(function (res) {
         //debugger;
-        console.log(JSON.stringify(res));
+        consolelog(JSON.stringify(res));
 
         model.viewModel.refreshBothLists();
 
@@ -86,29 +128,24 @@ function copyFile(frompath, topath) {
 
         model.viewModel.UpdateStatusMessage(res.statusText);
     }).fail(function (err) {
-        console.log('Error: ' + err);
+        consolelog('Error: ' + err);
+        model.viewModel.UpdateStatusMessage(err);
     });
 
 }
+
+// Note: It is required that any drop target handle both dragOver and dragEnter, 
+//       and that e.preventDefault() be executed in each. 
+// https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop
+//
 function dragOver(e) {
     e.preventDefault();
-    //console.log("dragOver currentTarget.id = " + e.currentTarget.id);
-    //console.log("dragOver target.id = " + e.target.id);
 }
 function dragEnter(e) {
     e.preventDefault();
-    //console.log("dragEnter currentTarget.id = " + e.currentTarget.id);
-    //console.log("dragEnter target.id = " + e.target.id);
     e.currentTarget.classList.add("dragEnter");
-    //debugger;
-    //var fullpath = $("#" + e.target.id).attr("fullpath");
-    //alert("fullpath = " + fullpath);
-    //e.dataTransfer.setData("text", fullpath);
 }
 function dragLeave(e) {
-    console.log("dragLeave currentTarget.id = " + e.currentTarget.id);
-    console.log("dragLeave target.id = " + e.target.id);
-
     e.currentTarget.classList.remove("dragEnter");
 
 }
