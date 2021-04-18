@@ -37,6 +37,13 @@ function FileManModel(searchPhrase, rootFolder) {
     self.numberOfFiles = ko.observable(0);
     self.statusMessage = ko.observable("");
 
+
+    self.isCurrentFile = (data) => {
+        consolelog("isCurrentFile: " + data);
+        return data == self.currentFile();
+    };
+
+
     // selectFolder
     // User clicks on folder name. The name of the folder is passed in automatically by knockout. 
     // This is used by the folder panel, not the tree view.
@@ -264,7 +271,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.copyFile = function (frompath, topath) {
         //alert("Would copy " + frompath + " to " + topath);
         $.ajax({
-            url: '/default/CopyFile',
+            url: '/default/CopyFileOrDirectory',
             method: "POST",                // should always delete with POST 
             data: { frompath, topath }
         }).done(function (res) {
@@ -287,7 +294,7 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     self.moveFile = function (frompath, topath) {
         $.ajax({
-            url: '/default/MoveFile',
+            url: '/default/MoveFileOrDirectory',
             method: "POST",                // should always delete with POST 
             data: { frompath, topath }
         }).done(function (res) {
@@ -303,14 +310,17 @@ function FileManModel(searchPhrase, rootFolder) {
         });
     }
 
-    self.deleteFile = function (file) {
-        var path;
-        path = file;
+    self.deleteFile = function (file, bForced) {
+        var filepath;
+        filepath = file;
+        if (bForced == undefined) bForced = false;
+
+        if (file == self.currentFile()) self.currentFile("");
 
         $.ajax({
-            url: '/default/DeleteFile',
+            url: '/default/DeleteFileOrDirectory',
             method: "POST",                // should always delete with POST 
-            data: { filepath: path }
+            data: { filepath, bForced }
         })
             .done(function (res) {
                 //debugger;
@@ -500,6 +510,14 @@ function FileManModel(searchPhrase, rootFolder) {
         } else { return ""; }
     }
 
+    self.getFolderNameFromPath = (path) => {
+        if (path != undefined) {
+            var pieces = path.split("\\");
+            var name = pieces[pieces.length - 1];
+            if (name == "") name = "root";
+            return name;
+        } else { return "root"; }
+    }
 
     self.init = async () => {
         if (self.searchPhrase() != "") {

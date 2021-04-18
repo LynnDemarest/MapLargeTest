@@ -33,9 +33,9 @@
         <div class="container">
             <div>
                 <div class="divCurrentFolder">
-                    <div class="currentfolder" >
+                    <div class="currentfolder" style="display:flex;justify-content:space-between;">
                         <div>
-                            <div id="currentFolder" data-bind="text: currentFolder"></div>
+                            <div id="rootFolder" data-bind="text: currentFolder"></div>
                         </div>
                         <div data-bind="if: canGoUp()">
                             <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."

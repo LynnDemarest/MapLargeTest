@@ -38,6 +38,9 @@ namespace TestProject.Controllers
             return Json(tree);
         }
 
+        // RemoveRootFolder
+        // Removes the server-mapped root folder from the path
+        //
         private string RemoveRootFolder(string path)
         {
             string rootFolder = Server.MapPath(ConfigurationManager.AppSettings["rootFolder"]);
@@ -154,26 +157,28 @@ namespace TestProject.Controllers
 
             return Json($"{newfolderpath} created.");
         }
-        public JsonResult DeleteFolder(string folderpath)
-        {
-            try
-            {
-                folderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], folderpath);
-                System.IO.Directory.Delete(Server.MapPath(folderpath));
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+        //public JsonResult DeleteFolder(string folderpath)
+        //{
+        //    try
+        //    {
+        //        folderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], folderpath);
+        //        System.IO.Directory.Delete(Server.MapPath(folderpath));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
 
-            return Json($"{folderpath} deleted.");
-        }
+        //    return Json($"{folderpath} deleted.");
+        //}
 
         [HttpPost]
         public JsonResult MoveFolder(string fromfolderpath, string tofolderpath)
         {
             try
             {
+                if (fromfolderpath == tofolderpath) throw new Exception("Can't move to the same location.");
+
                 fromfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], fromfolderpath);
                 string dirname = Path.GetFileName(fromfolderpath);
                 if (dirname == "") dirname = "root";
@@ -291,17 +296,48 @@ namespace TestProject.Controllers
             }
         }
 
+        private bool DirectoryIsEmpty(string path)
+        {
+            if (Directory.GetDirectories(path).Count() > 0) return false; 
+            if (Directory.GetFiles(path).Count() > 0) return false;
+
+            return true;
+        }
+
 
         [HttpPost]
-        public ActionResult DeleteFile(string filepath)
+        public ActionResult DeleteFileOrDirectory(string filepath, bool bForced)
         {
             try
             {
                 string root = ConfigurationManager.AppSettings["rootFolder"];
-                string newfilepath = Server.MapPath(Path.Combine(root, filepath));
-                FileInfo fi = new FileInfo(newfilepath);
-                fi.Delete();
-                return Json($"File deleted: {filepath}");
+
+                string fromdir = Server.MapPath(Path.Combine(root, filepath));
+
+                if (Directory.Exists(fromdir))
+                {
+                    // It's a folder, so delete it if it's not empty
+                    if (DirectoryIsEmpty(fromdir) || bForced)
+                    {
+                        Directory.Delete(fromdir, bForced);
+                        if (bForced)
+                        {
+                            return Json($"Non-empty folder deleted: {filepath}");
+                        }
+                        else
+                        {
+                            return Json($"Folder deleted: {filepath}");
+                        }
+                    }
+                    else throw new Exception("Folder is not empty.");
+                }
+                else
+                {
+                    string newfilepath = Server.MapPath(Path.Combine(root, filepath));
+                    FileInfo fi = new FileInfo(newfilepath);
+                    fi.Delete();
+                    return Json($"File deleted: {filepath}");
+                }
             }
             catch (Exception ex)
             {
@@ -310,7 +346,7 @@ namespace TestProject.Controllers
         }
 
         [HttpPost]
-        public ActionResult MoveFile(string frompath, string topath)
+        public ActionResult MoveFileOrDirectory(string frompath, string topath)
         {
             try
             {
@@ -327,7 +363,7 @@ namespace TestProject.Controllers
                 }
                 else
                 {
-                    // add filename to the topath 
+                    // add filename to the to path 
                     string filename = Path.GetFileName(frompath);
                     topath = Path.Combine(topath, filename);
 
@@ -345,7 +381,7 @@ namespace TestProject.Controllers
             }
 
         }
-        public ActionResult CopyFile(string frompath, string topath)
+        public ActionResult CopyFileOrDirectory(string frompath, string topath)
         {
             try
             {
@@ -357,8 +393,6 @@ namespace TestProject.Controllers
                 if (Directory.Exists(fromdir) && Directory.Exists(todir))
                 {
                     return CopyFolder(frompath, topath);
-                    // we're moving directories!
-                    // return Json($"File moved from {frompath} to {topath}");
                 }
                 else
                 {

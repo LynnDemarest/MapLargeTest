@@ -1,10 +1,30 @@
-﻿body {
+﻿
+:root {
+    --headercolor: darkblue;
+    --current: lightyellow;
+    --button: darkgray;
+    --buttonText: darkblue;
+}
+
+body {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     
 }
 
-ul {
-    list-style: none;
+.container 
+{
+   display:flex;
+   width:100%;
+}
+
+button {
+    color: var(--buttonText);
+    font-weight: bold;
+    background-color: var(--button);
+    height: 2rem;
+    width: auto;
+    margin: auto;
+    border:0px solid white;
 }
 
 .tinytextwhite {
@@ -13,34 +33,74 @@ ul {
     font-weight:normal;
 }
 
+h1 {
+    color: var(--headercolor);
+}
+
 /* dragging */
+.current{
+    background-color: var(--current);
+    font-weight:bold;
+}
+
+
+ul {
+    list-style: none;
+    margin-left:1rem;
+    padding-left:0px;
+}
 
 .dragEnter {
     color: red;
     border: 1px solid red;
 }
 
-.folderUL li::before {
-    content: '';
-    display: inline-block;
-    height: 20px;
-    width: 20px;
-    background-image: url('/img/folder.svg');
-    margin-right: 10px;
-    top: 3px;
-    position: relative;
+li {
+    text-wrap:none;
+    white-space:nowrap;
 }
 
-.fileUL li::before {
-    content: '';
-    display: inline-block;
-    height: 20px;
-    width: 20px;
-    background-image: url('/img/file.svg');
-    margin-right: 10px;
-    top: 3px;
-    position: relative;
+.divDirectoryTreeContainer {
+    xmargin-left:-30px;
+    padding-right:10px;
 }
+
+.folderUL
+{
+    width:auto;
+}
+    .folderUL li::before {
+        content: '';
+        display: inline-block;
+        height: 20px;
+        width: 20px;
+        background-image: url('/img/folder.svg');
+        margin-right: 10px;
+        top: 3px;
+        position: relative;
+        filter: invert(60%) sepia(32%) saturate(3313%) hue-rotate(20deg) brightness(104%) contrast(101%);
+    }
+
+.fileUL li {
+    
+    padding-right:10px;
+    margin-right:10px;
+    border:0px solid green;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+    .fileUL li::before {
+        content: '';
+        display: inline-block;
+        height: 20px;
+        width: 20px;
+        background-image: url('/img/file.svg');
+        margin-right: 10px;
+        top: 3px;
+        position: relative;
+        filter: invert(8%) sepia(100%) saturate(6341%) hue-rotate(247deg) brightness(90%) contrast(145%);
+    }
 
 
 #knockoutContainer {
@@ -73,14 +133,18 @@ ul {
     margin-right: 1rem;
 }
 
-.trashicon {
-    height:3rem;
-    filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%);
+.trashiconhover {
+    height: 3rem;
+    /* red  
+    filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%); */
+    filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+    border:0px solid red;
 }
-    .trashiconhover {
-        /* red */
-        filter: invert(11%) sepia(4%) saturate(6597%) hue-rotate(280deg) brightness(104%) contrast(105%);
-    }
+.trashicon {
+    height: 3rem;
+    /* white                                   */
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(180deg) brightness(100%) contrast(105%);
+}
 
 .copyicon {
     height: 1rem;
@@ -91,6 +155,8 @@ ul {
     height: 1.2rem;
     filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%);
 }
+
+
 
 .linenumber {
     width: 2rem;
@@ -121,10 +187,12 @@ footer {
     color: white;
     padding: 1rem;
     margin-bottom: .3rem;
+    display:flex;
+    justify-content:space-between;
 }
 
     .currentfolder::before {
-        content: "Current Folder";
+        content: "";
         font-size: .7rem;
         position: relative;
         top: -.8rem;
@@ -162,7 +230,7 @@ footer {
 .divUploadFiles {
     border: 1px solid gray;
     margin-bottom: .4rem;
-    /* margin-top: 1rem;*/
+    min-width: 400px;
 }
 .uploadPanel {
     padding: 1rem;
@@ -170,7 +238,7 @@ footer {
 .divDirectoryTree {
     border: 1px solid gray;
     margin-bottom: 1rem;
-    /*margin-top: 1rem;*/
+    
 }
 
 
@@ -200,7 +268,7 @@ footer {
 }
 
 .header {
-    background: #666;
+    background-color: var(--headercolor);
     color: white;
     font-weight: bold;
     padding: 1rem;

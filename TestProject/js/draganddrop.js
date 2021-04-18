@@ -1,15 +1,18 @@
 ﻿//
 // drag and drop handling 
 //
+
 // 
 //
 //
 function updateDragClassesAndHandlers() {
+
     const files = document.querySelectorAll(".file");
     for (var f of files) {
         f.addEventListener("dragstart", dragStart);
         f.addEventListener("dragend", dragEnd);
     }
+
     const folders = document.querySelectorAll('.folder');
     for (var d of folders) {
         d.addEventListener("dragstart", dragStart);
@@ -20,7 +23,10 @@ function updateDragClassesAndHandlers() {
         d.addEventListener("dragleave", dragLeave);
         d.addEventListener("drop", dragDrop);
     }
-    const trashcans = document.querySelectorAll('#divTrash');
+
+    // Note: There's only one trashcan now, but if you want to add more you can
+    //       because of querySelectorAll. Also, the code is more consistent this way. 
+    const trashcans = document.querySelectorAll('.trashicon');
     for (var t of trashcans) {
         //t.addEventListener("dragstart", dragStart);
         //t.addEventListener("dragend", dragEnd);
@@ -58,18 +64,21 @@ function dragDelete(e) {
     //alert(JSON.stringify(e));
     var frompath = e.dataTransfer.getData("text");
     //alert(frompath);
+    var bForced = e.ctrlKey;
 
     e.currentTarget.classList.remove("trashiconhover");
-
-    model.viewModel.deleteFile(frompath);
+    e.currentTarget.classList.add("trashicon");
+    model.viewModel.deleteFile(frompath, bForced);
 }
 function dragEnterTrash(e) {
     e.preventDefault();
     e.currentTarget.classList.add("trashiconhover");
+    e.currentTarget.classList.remove("trashicon");
 
 }
 function dragLeaveTrash(e) {
     e.currentTarget.classList.remove("trashiconhover");
+    e.currentTarget.classList.add("trashicon");
 }
 //
 //
@@ -84,7 +93,8 @@ function dragDrop(e) {
 
     var topath;
     //frompath = document.getElementById(file).attributes.fullpath.textContent;
-    topath = document.getElementById(e.target.id).innerText;
+    //topath = document.getElementById(e.target.id).innerText;
+    topath = document.getElementById(e.target.id).attributes.fullpath.textContent;
 
     // dragLeave doesn't get fired if dragDrop is fired, so remove the highlight here.
     //
