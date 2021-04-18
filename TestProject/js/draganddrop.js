@@ -5,19 +5,31 @@
 // updateDragClassesAndHandlers
 // Hooks up various events to .file and .folder and .trashicon elements. 
 //
+// When new elements are added dynamically, they need to be hooked up. We do this here for all drag-and-drop elements. 
+//
+//
 function updateDragClassesAndHandlers() {
 
     const files = document.querySelectorAll(".file");
     for (var f of files) {
+        f.removeEventListener("dragstart", dragStart);
+        f.removeEventListener("dragend", dragEnd);
+
         f.addEventListener("dragstart", dragStart);
         f.addEventListener("dragend", dragEnd);
     }
 
     const folders = document.querySelectorAll('.folder');
     for (var d of folders) {
+        d.removeEventListener("dragstart", dragStart);
+        d.removeEventListener("dragend", dragEnd);
+        d.removeEventListener("dragover", dragOver);
+        d.removeEventListener("dragenter", dragEnter);
+        d.removeEventListener("dragleave", dragLeave);
+        d.removeEventListener("drop", dragDrop);
+
         d.addEventListener("dragstart", dragStart);
         d.addEventListener("dragend", dragEnd);
-
         d.addEventListener("dragover", dragOver);
         d.addEventListener("dragenter", dragEnter);
         d.addEventListener("dragleave", dragLeave);
@@ -28,8 +40,12 @@ function updateDragClassesAndHandlers() {
     //       because of querySelectorAll. Also, the code is more consistent this way. 
     const trashcans = document.querySelectorAll('.trashicon');
     for (var t of trashcans) {
-        //t.addEventListener("dragstart", dragStart);
-        //t.addEventListener("dragend", dragEnd);
+        t.removeEventListener("dragover", dragOver);
+        t.removeEventListener("dragenter", dragEnterTrash)
+        t.removeEventListener("dragleave", dragLeaveTrash)
+        t.removeEventListener("drop", dragDelete);
+
+
         t.addEventListener("dragover", dragOver);
         t.addEventListener("dragenter", dragEnterTrash)
         t.addEventListener("dragleave", dragLeaveTrash)

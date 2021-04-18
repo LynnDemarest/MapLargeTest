@@ -5,24 +5,24 @@
     --button: #7a0c6b;
     --buttonText: white;
     --titlebackground: #7a0c6b;
+    --marginbottom: .4rem;
 }
 
 body {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    
 }
 
-.flexcontainer 
-{
-   display:flex;
-   width:100%;
+.flexcontainer {
+    display: flex;
+    width: 100%;
 }
-.leftPanel{
 
+.leftPanel {
 }
+
 .rightPanel {
-    width:90%;
-    margin-left:1rem;
+    width: 90%;
+    margin-left: 1rem;
 }
 
 /*
@@ -32,9 +32,12 @@ body {
 */
 
 .divupfolder {
-    margin-left:3rem;
-
+    margin-left: 3rem;
 }
+
+
+
+
 /*
 
     helper classes
@@ -57,18 +60,18 @@ button {
     height: 2rem;
     width: auto;
     margin: auto;
-    border:0px solid white;
+    border: 0px solid white;
 }
 
 .tinytextwhite {
     color: white;
     font-size: 0.6rem;
-    font-weight:normal;
+    font-weight: normal;
 }
 
 .current {
     background-color: var(--current);
-    font-weight:bold;
+    font-weight: bold;
 }
 
 .dragEnter {
@@ -80,14 +83,14 @@ button {
 
 ul {
     list-style: none;
-    margin-left:1rem;
-    padding-left:0px;
+    margin-left: 1rem;
+    padding-left: 0px;
 }
 
 
 li {
-    text-wrap:none;
-    white-space:nowrap;
+    text-wrap: none;
+    white-space: nowrap;
 }
 
 /*
@@ -96,13 +99,19 @@ li {
 */
 
 .divDirectoryTreeContainer {
-    padding-right:10px;
+    padding-right: 10px;
 }
 
-.folderUL
-{
-    width:auto;
+
+.divDirectoryTree {
+    border: 1px solid gray;
+    margin-bottom: 1rem;
 }
+
+.folderUL {
+    width: auto;
+}
+
     .folderUL li::before, .folder::before {
         content: '';
         display: inline-block;
@@ -116,12 +125,11 @@ li {
     }
 
 .fileUL li {
-    
-    padding-right:10px;
-    margin-right:10px;
-    border:0px solid green;
-    white-space:nowrap;
-    overflow:hidden;
+    padding-right: 10px;
+    margin-right: 10px;
+    border: 0px solid green;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
     .fileUL li::before, .file::before {
@@ -141,23 +149,7 @@ li {
     width: 100%;
 }
 
-/*
 
-    Right Side 
-
-
-*/
-
-.statusMessage {
-    border: 1px solid gray;
-    height: 6rem;
-    background-color: #eef;
-    padding: 1rem;
-    margin-bottom: .4rem;
-    
-    font-size:.8rem;
-    overflow:scroll;
-}
 
 .hidden {
     visibility: hidden;
@@ -185,8 +177,9 @@ li {
     /* red  
     filter: invert(100%) sepia(0%) saturate(7486%) hue-rotate(112deg) brightness(109%) contrast(97%); */
     filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
-    border:0px solid red;
+    border: 0px solid red;
 }
+
 .trashicon {
     height: 3rem;
     /* white                                   */
@@ -215,7 +208,7 @@ footer {
 
 
 .divCurrentFolder {
-    margin-bottom: .4rem;
+    margin-bottom: var(--marginbottom);
 }
 /*  */
 .currentfolder {
@@ -226,8 +219,8 @@ footer {
     padding: 1rem;
     margin-bottom: .3rem;
     display: flex;
-    justify-content:flex-start;
-    margin-bottom: .4rem;
+    justify-content: flex-start;
+    margin-bottom: var(--marginbottom);
 }
 
     .currentfolder::before {
@@ -239,66 +232,122 @@ footer {
     }
 
 
+
+/*
+
+
+    Right Side 
+
+
+*/
+
+
+/* 
+    
+    
+    
+    SEARCH 
+
+
+
+*/
 .divSearchResults {
     border: 1px solid gray;
-    margin-bottom: .4rem;
+    margin-bottom: var(--marginbottom);
     /*    margin-top: 1rem;*/
 }
+
 .divSearchBody {
     padding: 1rem;
-    border:0px solid red;
-    text-align:left;
+    border: 0px solid red;
+}
+.searchform {
+    display:flex;
+    max-width:300px;
+    justify-content:space-between;
+}
+.searchresults {
+    text-align: left;
+    border: 0px solid red;
 }
 
-.searchresults 
-{
-    text-align:left;
-    border:0px solid red;
+    .searchresults ul {
+        border: 0px solid green;
+        text-align: left;
+        width: auto;
+        margin-left: auto;
+        margin-right: auto;
+        xleft: -50px;
+        position: relative;
+        font-size: 1rem;
+    }
+input.search {
+    width: 100%;
 }
-.searchresults ul {
-    border:0px solid green;
-    text-align:left;
-    width:auto;
-    margin-left: auto;
-    margin-right:auto; 
-    left:-50px;
-    position:relative;
-    font-size:1rem;
+.searchbutton{
+    margin-left:1rem;
 }
 
+/*
+    
+
+    UPLOAD
+
+
+*/
 .divUploadFiles {
     border: 1px solid gray;
-    margin-bottom: .4rem;
+    flex-basis:30%;
     min-width: 400px;
+    margin-bottom:var(--marginbottom);
 }
+
 .uploadPanel {
     padding: 1rem;
 }
-.divDirectoryTree {
+
+
+/*
+
+    STATUS
+
+*/
+
+.statusMessage {
     border: 1px solid gray;
-    margin-bottom: 1rem;
+    background-color: #eee;
+    padding: 1rem;
+    font-size: .8rem;
+    overflow: scroll;
     
+}
+.xxxxxxxxxxxxxxxxxxxcell 
+{
+    flex-basis: 30%;
 }
 
 
-/* right side */
+
+
+
 
 .divFolders {
     border: 1px solid gray;
-    margin-bottom: .4rem;
+    margin-bottom: var(--marginbottom);
     /*margin-top: 1rem;*/
 }
 
 .divFiles {
     border: 1px solid gray;
-    margin-bottom: .4rem;
+    margin-bottom: var(--marginbottom);
     /*margin-top: 1rem;*/
 }
 
 
 .divContents {
-    margin-bottom: .4rem;
+    margin-bottom: var(--marginbottom);
 }
+
 .divShowFile {
     border: 1px solid gray;
     padding: 1rem;
@@ -311,8 +360,12 @@ footer {
     color: white;
     font-weight: bold;
     padding: 1rem;
+    white-space: nowrap;
 }
 
     .header:hover {
         cursor: pointer;
     }
+
+
+

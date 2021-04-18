@@ -121,7 +121,8 @@ namespace TestProject.Controllers
                     searchphrase = $"*{searchphrase}*";
                 }
 
-                string newpath = Server.MapPath(Path.Combine(ConfigurationManager.AppSettings["rootFolder"], path));
+                var p = Server.UrlDecode(path);
+                string newpath = Server.MapPath(Path.Combine(ConfigurationManager.AppSettings["rootFolder"], p));
                 string[] files = Directory.GetFiles(newpath, searchphrase, SearchOption.AllDirectories);
 
                 // remove the absolute part of the path for each file 

@@ -9,8 +9,8 @@ function FileManModel(searchPhrase, rootFolder) {
     if (searchPhrase == undefined) searchPhrase = "";
     if (rootFolder == undefined) rootFolder = "";
 
-    self.searchPhrase = ko.observable(searchPhrase);
     self.rootFolder = ko.observable(rootFolder);
+    self.searchPhrase = ko.observable(searchPhrase);
         
     self.newFolderName = ko.observable("");
 
@@ -37,26 +37,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.numberOfFiles = ko.observable(0);
     self.statusMessage = ko.observable("");
 
-
-
-    //ko.components.register("current-folder", {
-    //    template: `<div class="divCurrentFolder">
-    //                <div class="currentfolder">
-    //                    <div id="currentFolder" data-bind="text: currentFolder"></div>
-
-    //                    <div data-bind="if: canGoUp()">
-    //                        <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
-    //                             class="clickable goupicon"
-    //                             data-bind="click: function() {goUp();}" onclick="event.stopPropagation()" />
-    //                    </div>
-    //                </div>
-    //            </div>`,
-    //    viewModel: self
-    //})
-
-
-
-
+    
     self.isCurrentFile = (data) => {
         consolelog("isCurrentFile: " + data);
         return data == self.currentFile();
@@ -103,9 +84,13 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
     // getCurrentFileContents
-    //
+    // Updates self.currentFileContents using path in self.currentFile
     //
     self.getCurrentFileContents = async () => {
+
+        var xxx = self.currentFile().subscribe((p) => {
+            alert(p);
+        })
 
         var path = self.currentFile();
 
@@ -277,6 +262,11 @@ function FileManModel(searchPhrase, rootFolder) {
                 // TODO: Only do this if the folder just deleted is involved in the search listing
                 // 
                 self.doSearch();
+
+                // Note: Kludge. Open the tree view, because it sometimes closes! 
+                var obj = document.getElementById("divDirectoryTreeContainer");
+                obj.hidden = false;
+
             })
             .fail(function (err) {
                 consolelog('Error: ' + err);
@@ -334,7 +324,15 @@ function FileManModel(searchPhrase, rootFolder) {
         filepath = file;
         if (bForced == undefined) bForced = false;
 
-        if (file == self.currentFile()) self.currentFile("");
+        //alert("would delete " + filepath);
+        //return;
+
+        // If we're deleting the currently displayed file, 
+        // clear the display
+        if (file == self.currentFile()) {
+            self.currentFile("");
+            self.currentFileContents("");
+        }
 
         $.ajax({
             url: '/default/DeleteFileOrDirectory',
@@ -345,7 +343,7 @@ function FileManModel(searchPhrase, rootFolder) {
                 //debugger;
                 consolelog(res);
                 self.UpdateStatusMessage(res);
-                //self.getFolderData();
+                
                 self.refreshBothLists();
                 // TODO: Only do this if the file just deleted is in the search listing
                 // 
@@ -409,6 +407,8 @@ function FileManModel(searchPhrase, rootFolder) {
     self.doSearch = async () => {
         //alert("Search called");
         var searchphrase = self.searchPhrase();
+
+        // Clear the search if blank phrase is entered.
         if (searchphrase == undefined || searchphrase == "") {
             self.searchPhrase("");
             self.numberOfSearchResults(0);
@@ -416,30 +416,26 @@ function FileManModel(searchPhrase, rootFolder) {
             return;
         }
 
-        //alert(this.searchPhrase());
         var path = self.rootFolder();
-
         await $.ajax({
             url: '/default/searchFolder',
             method: "POST",
-            data: { 'searchphrase': searchphrase, 'path': path }
+            data: { searchphrase, path }
         })
             .done(function (res) {
                 //alert(JSON.stringify(res));
                 self.searchResults(res);
-                self.UpdateStatusMessage(`${res.length} files found`);
+                self.UpdateStatusMessage(`Search for found ${res.length} files.`);
+
                 self.numberOfSearchResults(res.length);
-                if (false) {
-                    var obj = document.getElementById("divSearchResults");
-                    if (res.length == 0) {
-                        obj.classList.add("hidden");
-                    } else obj.classList.remove("hidden");
-                }
 
                 self.updateUrlWithState();
+
+                updateDragClassesAndHandlers();  // because new elements have been added
             })
             .fail(function (err) {
-                self.UpdateStatusMessage('Error: ' + err);
+                alert("There was an error searching. See the log for details.");
+                self.UpdateStatusMessage('Search Error: ' + JSON.stringify(err));
             });
     }
 
@@ -490,12 +486,12 @@ function FileManModel(searchPhrase, rootFolder) {
     // The view is updated automatically via knockout observables.
     //
     self.getFolderData = async () => {
+
         var path = self.rootFolder();
 
         await $.ajax({
             url: '/default/getFolder?p=' + path
-        })
-            .done(function (res) {
+        }).done(function (res) {
                 if (path == "") path = "root";
                 self.UpdateStatusMessage(`Current Folder (${path}) refreshed.`);
                 self.folders(res.folders);
@@ -513,11 +509,11 @@ function FileManModel(searchPhrase, rootFolder) {
 
                 self.updateUrlWithState();
                 //
-                // after files and folders are created, add drag and drop stuff
-                //
+                // After files and folders are created, add drag-and-drop handlers to 
+                // elements with .file, .folder, and .trashicon
+                // 
                 updateDragClassesAndHandlers();
-            })
-            .fail(function (err) {
+            }).fail(function (err) {
                 self.UpdateStatusMessage('Error: ' + err);
             });
     };
