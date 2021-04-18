@@ -9,8 +9,127 @@
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
+
+    <!-- knockoutjs TEMPLATES -->
+    <script id="current-folder" type="text/html">
+        <div class="divCurrentFolder">
+            <div class="currentfolder">
+                <div id="currentFolder" data-bind="text: currentFolder"></div>
+
+                <div class="divupfolder" data-bind="if: canGoUp()">
+                    <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
+                         class="clickable goupicon"
+                         data-bind="click: function() {goUp();}" onclick="event.stopPropagation()" />
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="search" type="text/html">
+        <div id="divSearchResults" class="divSearchResults">
+            <div class="header" onclick="toggleNext(this);">
+                Search : (<span data-bind="text: numberOfSearchResults"></span>)
+                <span id="searchfolder" data-bind="text: currentFolder()"></span>
+            </div>
+            <div class="divSearchBody">
+                <input type="text" data-bind="value: searchPhrase" />
+                <!--
+                    Two ways of preventing event handlers from firing on startup.
+
+                    This standard click binding allows the doSearch() handler to fire on startup.
+                    <button class="clickable" data-bind="click: doSearch();">Search</button>
+
+                    This version fixes the issue
+                    <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
+
+                    But this is the recommended syntax:
+                -->
+                <button class="clickable" data-bind="click: doSearch.bind();">Search</button>
+
+                <div class="searchresults">
+                    <ul data-bind="foreach: searchResults">
+                        <div style="display:flex;">
+                            <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
+                            <img src="img/delete.svg" class="clickable deleteicon"
+                                 data-bind="text: $data,
+                                         click: $root.deleteFile" />
+                            <img src="img/download.svg" class="clickable downloadicon" title="Download file"
+                                 data-bind="text: $data,
+                                     click: $root.downloadFile" />
+                            <li class="clickable" data-bind="text: $data,
+                                         click: $root.selectFile">
+                            </li>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </script>
+    <script id="upload" type="text/html">
+        <div class="divUploadFiles">
+            <div class="header" onclick="toggleNext(this);">
+                Upload Files to <span data-bind="text: currentFolder"></span>
+            </div>
+            <div class="uploadPanel">
+                <input type="file" id="FileUpload1" multiple />
+                <input type="button" id="btnUpload2" value="Upload Files"
+                       onclick="doUpload();" />
+            </div>
+        </div>
+    </script>
+    <script id="tree" type="text/html">
+        <div class="divDirectoryTree">
+            <div class="header" onclick="toggleNext(this);" style="display:flex;justify-content:space-between;">
+
+                <div>
+                    Tree View
+                    <!--span data-bind="text: DirectoryTree().path"></span>
+                <span data-bind="if: DirectoryTree().path === ''">root</span-->
+                    <br />
+                    <span class="tinytextwhite">Drag and drop files and folders to move them.<br />Hold down Ctrl key to copy.</span>
+                </div>
+                <div id="divTrash" class="divTrash">
+                    <!-- trashcan used as a drag and drop target -->
+                    <img id="trash" class="trashicon" src="/img/trash.svg"
+                         title="Drag files and folders here to delete them. Use CTRL to delete non-empty folders." />
+                </div>
+
+            </div>
+            <div class="divDirectoryTreeContainer">
+                <!-- DirectoryTree template -->
+                <script id="treeTemplate" type="text/html">
+                    <ul class="folderUL">
+                        <!--<div data-bind="if: $data.path !== undefined;">-->
+                        <li class="folder clickable" draggable="true" data-bind="text: $root.getFolderNameFromPath($data.path),
+                                         click: $root.selectFolderObject,
+                                         attr: {id: 'folder_' + $data.path, fullpath: $data.path  }">
+                        </li>
+                        <!--</div>-->
+
+                        <ul data-bind="foreach: $data.files" class="fileUL">
+
+                            <li class="clickable file" draggable="true"
+                                data-bind="text: $root.getFileNameFromPath($data),
+                                            click: $root.selectFile,
+                                            attr: {id: 'file_' + $index(), fullpath: $data, title: $data },
+                                            css: $root.isCurrentFile($data) ? 'current' : ''; ">
+                            </li>
+                        </ul>
+                        <!-- ko template: { name: 'treeTemplate', foreach: $data.folders } -->
+                        <!-- /ko -->
+                        </li>
+                    </ul>
+                </script>
+                <!-- -->
+                <div data-bind="template: { name: 'treeTemplate', data: DirectoryTree() }"></div>
+            </div>
+        </div>
+    </script>
+
     <script src="js/FileMan.js"></script>
     <script src="js/draganddrop.js"></script>
+
+
 
     <!-- remove in production and replace with favicon.ico -->
     <link rel="shortcut icon" href="#">
@@ -25,90 +144,24 @@
     2.
     -->
     <link href="../css/main.css" rel="stylesheet" />
+
+
 </head>
 <body>
     <div id="knockoutContainer">
         <h1>MapLarge File Manager</h1>
-
-        <div class="container">
-            <div>
-                <div class="divCurrentFolder">
-                    <div class="currentfolder" >
-                        <div>
-                            <div id="currentFolder" data-bind="text: currentFolder"></div>
-                        </div>
-                        <div data-bind="if: canGoUp()">
-                            <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
-                                 class="clickable goupicon"
-                                 data-bind="click: function() {goUp();}" onclick="event.stopPropagation()" />
-                        </div>
-                    </div>
-                </div>
-                <div id="divSearchResults" class="divSearchResults">
-                    <div class="header" onclick="toggleNext(this);">
-                        Search : (<span data-bind="text: numberOfSearchResults"></span>)
-                        <span id="searchfolder" data-bind="text: currentFolder()"></span>
-                    </div>
-                    <div class="divSearchBody">
-                        <input type="text" data-bind="value: searchPhrase" />
-                        <!--
-                            Two ways of preventing event handlers from firing on startup.
-
-                            This standard click binding allows the doSearch() handler to fire on startup.
-                            <button class="clickable" data-bind="click: doSearch();">Search</button>
-
-                            This version fixes the issue
-                            <button class="clickable" data-bind="click: function() {doSearch();}">Search</button>
-
-                            But this is the recommended syntax:
-                        -->
-                        <button class="clickable" data-bind="click: doSearch.bind();">Search</button>
-
-                        <div class="searchresults">
-                            <ul data-bind="foreach: searchResults">
-                                <div style="display:flex;">
-                                    <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
-                                    <img src="img/delete.svg" class="clickable deleteicon"
-                                         data-bind="text: $data,
-                                         click: $root.deleteFile" />
-                                    <img src="img/download.svg" class="clickable downloadicon" title="Download file"
-                                         data-bind="text: $data,
-                                     click: $root.downloadFile" />
-                                    <li class="clickable" data-bind="text: $data,
-                                         click: $root.selectFile">
-                                    </li>
-                                </div>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="divUploadFiles">
-                    <div class="header" onclick="toggleNext(this);">
-                        Upload Files to <span data-bind="text: currentFolder"></span>
-                    </div>
-                    <!--     self.uploadFile = function () {
-
-                            doUpload().then(() => {
-                                self.refreshBothLists();
-                            }).catch((err) => { self.UpdateStatusMessage(err) });  // refresh
-                        }
-
-                                        data-bind="click: function () {$root.uploadFile();}"
-                    -->
-                    <div class="uploadPanel">
-                        <input type="file" id="FileUpload1" multiple />
-                        <input type="button" id="btnUpload2" value="Upload Files"
-                               onclick="doUpload();" />
-                    </div>
-                </div>
+        <div data-bind="template: { name: 'current-folder', data: model.viewModel } "></div>
+        <div class="flexcontainer">
+            <div class="leftPanel">
+                <div data-bind="template: { name: 'search', data: model.viewModel } "></div>
+                <div data-bind="template: { name: 'upload', data: model.viewModel } "></div>
                 <div class="divDirectoryTree">
                     <div class="header" onclick="toggleNext(this);" style="display:flex;justify-content:space-between;">
 
                         <div>
                             Tree View
                             <!--span data-bind="text: DirectoryTree().path"></span>
-                            <span data-bind="if: DirectoryTree().path === ''">root</span-->
+                <span data-bind="if: DirectoryTree().path === ''">root</span-->
                             <br />
                             <span class="tinytextwhite">Drag and drop files and folders to move them.<br />Hold down Ctrl key to copy.</span>
                         </div>
@@ -149,8 +202,11 @@
                     </div>
                 </div>
 
+
+
+
             </div>
-            <div style="width:100%;margin-left:1rem;">
+            <div class="rightPanel">
                 <div id="statusMessage" class="statusMessage" ondblclick="model.viewModel.UpdateStatusMessage('');"
                      title="Double-click to clear.">
                     <span data-bind="html: statusMessage"></span>
@@ -161,7 +217,7 @@
                         <img src="img/copy.svg" data-bind="click: function () {$root.copyToClipboard();}" class="clickable copyicon"
                              alt="Copy to clipboard" title="Copy to clipboard" onclick="event.stopPropagation()" />
                     </div>
-                    <div class="divShowFile" >
+                    <div class="divShowFile">
                         <pre style="width:100%;border:0px solid red;">
                         <div data-bind="text: currentFileContents" id="currentFileContents"></div>
                         </pre>
@@ -175,7 +231,7 @@
                             </div>
                             <div>
                                 <input type="text" id="newfolder" data-bind="value: newFolderName" onclick="event.stopPropagation()" />
-                                <button class="AddButton" data-bind="click: addFolder" onclick="event.stopPropagation()">Add</button>
+                                <button class="AddButton" data-bind="click: addFolder" onclick="event.stopPropagation()">Add Folder</button>
                             </div>
                         </div>
                     </div>
@@ -383,5 +439,7 @@
 
 
     </script>
+
+
 </body>
 </html>

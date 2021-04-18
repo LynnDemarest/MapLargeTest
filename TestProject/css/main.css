@@ -2,8 +2,9 @@
 :root {
     --headercolor: darkblue;
     --current: lightyellow;
-    --button: darkgray;
-    --buttonText: darkblue;
+    --button: #7a0c6b;
+    --buttonText: white;
+    --titlebackground: #7a0c6b;
 }
 
 body {
@@ -11,10 +12,42 @@ body {
     
 }
 
-.container 
+.flexcontainer 
 {
    display:flex;
    width:100%;
+}
+.leftPanel{
+
+}
+.rightPanel {
+    width:90%;
+    margin-left:1rem;
+}
+
+/*
+
+    left panel cards, in order 
+    
+*/
+
+.divupfolder {
+    margin-left:3rem;
+
+}
+/*
+
+    helper classes
+
+*/
+.linenumber {
+    width: 2rem;
+    text-align: right;
+    font-size: .9rem;
+}
+
+.clickable:hover {
+    cursor: pointer;
 }
 
 button {
@@ -33,14 +66,15 @@ button {
     font-weight:normal;
 }
 
-h1 {
-    color: var(--headercolor);
-}
-
-/* dragging */
-.current{
+.current {
     background-color: var(--current);
     font-weight:bold;
+}
+
+.dragEnter {
+    color: red;
+    border: 1px solid red;
+    background-color: yellow;
 }
 
 
@@ -50,18 +84,18 @@ ul {
     padding-left:0px;
 }
 
-.dragEnter {
-    color: red;
-    border: 1px solid red;
-}
 
 li {
     text-wrap:none;
     white-space:nowrap;
 }
 
+/*
+    Tree View
+
+*/
+
 .divDirectoryTreeContainer {
-    xmargin-left:-30px;
     padding-right:10px;
 }
 
@@ -69,7 +103,7 @@ li {
 {
     width:auto;
 }
-    .folderUL li::before {
+    .folderUL li::before, .folder::before {
         content: '';
         display: inline-block;
         height: 20px;
@@ -90,7 +124,7 @@ li {
     overflow:hidden;
 }
 
-    .fileUL li::before {
+    .fileUL li::before, .file::before {
         content: '';
         display: inline-block;
         height: 20px;
@@ -107,6 +141,13 @@ li {
     width: 100%;
 }
 
+/*
+
+    Right Side 
+
+
+*/
+
 .statusMessage {
     border: 1px solid gray;
     height: 6rem;
@@ -122,6 +163,12 @@ li {
     visibility: hidden;
 }
 
+
+/* 
+
+    icons 
+
+*/
 .deleteicon {
     height: 1.3rem;
     margin-left: 1rem;
@@ -158,15 +205,6 @@ li {
 
 
 
-.linenumber {
-    width: 2rem;
-    text-align: right;
-    font-size: .9rem;
-}
-
-.clickable:hover {
-    cursor: pointer;
-}
 
 
 footer {
@@ -179,20 +217,21 @@ footer {
 .divCurrentFolder {
     margin-bottom: .4rem;
 }
-
+/*  */
 .currentfolder {
     font-weight: bold;
     font-size: 1.2rem;
-    background-color: #7a0c6b;
+    background-color: var(--titlebackground);
     color: white;
     padding: 1rem;
     margin-bottom: .3rem;
-    display:flex;
-    justify-content:space-between;
+    display: flex;
+    justify-content:flex-start;
+    margin-bottom: .4rem;
 }
 
     .currentfolder::before {
-        content: "";
+        content: "Current Folder";
         font-size: .7rem;
         position: relative;
         top: -.8rem;

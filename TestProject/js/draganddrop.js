@@ -1,9 +1,9 @@
 ﻿//
-// drag and drop handling 
+// drag and drop
 //
 
-// 
-//
+// updateDragClassesAndHandlers
+// Hooks up various events to .file and .folder and .trashicon elements. 
 //
 function updateDragClassesAndHandlers() {
 
