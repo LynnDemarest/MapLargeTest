@@ -12,6 +12,18 @@ body {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
+*, *::after, *::before{
+    box-sizing: border-box;
+}
+
+/*.open {
+    transform: scale(1, 0);
+    transform-origin:top;
+    transition: transform 400ms ease-in-out;
+}
+*/
+
+
 .flexcontainer {
     display: flex;
     width: 100%;

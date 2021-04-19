@@ -1,7 +1,8 @@
 ﻿
 // FileManModel
-// knockoutJS viewmodel. 
 //
+// knockoutJS viewmodel. Much of the action happens here. 
+// 
 //
 function FileManModel(searchPhrase, rootFolder) {
     var self = this;
@@ -17,6 +18,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.DirectoryTree = ko.observableArray();
 
     // This is the current root folder name or "root" for the beginning "" folder.
+    //
     self.currentFolder = ko.computed(function () {
         if (self.rootFolder() == "")
             return "root";
@@ -51,11 +53,11 @@ function FileManModel(searchPhrase, rootFolder) {
     self.selectFolder = function (folder) {
         var newpath = self.rootFolder();
         if (newpath != "") {
-            newpath += "\\";
+            newpath += "\\";   // Note: If we add this to the folder, Path.Combine will treat it like an absolute path. 
         }
         newpath += folder;
-        self.rootFolder(newpath);
 
+        self.rootFolder(newpath);
         self.getFolderData();
     }
 

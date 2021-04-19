@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>MapLarge File Manager</title>
+    <title>SPA File Manager</title>
 
     <link rel="shortcut icon" href="//maplarge.com/sites/default/files/favicon_0.ico" type="image/vnd.microsoft.icon" />
 
@@ -185,7 +185,7 @@
 <body>
     
     <div id="knockoutContainer">
-        <h1>MapLarge File Manager</h1>
+        <h1>SPA File Manager</h1>
         <div data-bind="template: { name: 'current-folder', data: model.viewModel } "></div>
         <div class="flexcontainer">
             <div class="leftPanel">
@@ -407,11 +407,11 @@
         //
         function toggleNext(obj) {
             var o = obj.nextElementSibling;  // ignores comments and text inbetween HTML elements, unlike nextSibling.
-            o.hidden = !o.hidden;
+            $(o).slideToggle();
         }
         function openNext(obj) {
             var o = obj.nextElementSibling;  // ignores comments and text inbetween HTML elements, unlike nextSibling.
-            o.hidden = false;
+            $(o).slideDown();
         }
 
 
