@@ -16,6 +16,7 @@
         Note: These make it easier to move panels around in the main layout.
         TODO: move them to another file.
     -->
+    
     <script id="current-folder" type="text/html">
         <div class="divCurrentFolder">
             <div class="currentfolder">
@@ -87,6 +88,9 @@
         </div>
     </script>
     <script id="status" type="text/html">
+        <div class="header" onclick="toggleNext(this);">
+            Activity Log
+        </div>
         <div id="statusMessage" class="statusMessage" ondblclick="model.viewModel.UpdateStatusMessage('');"
              title="Double-click to clear.">
             <!-- 'html' displays HTML rather than encoding it. ('text' encodes it) -->
@@ -122,15 +126,14 @@
                 </div>
             </div>
             <ul data-bind="foreach: folders">
-
-                <li class="folder clickable" data-bind="text: $data,
+                <li class="folder clickable" draggable="true" data-bind="text: $root.getFolderNameFromPath($data),
                                      click: $parent.selectFolder,
-                                     attr: {id: 'folder_' + $index() }">
-
+                                     attr: {'id': 'folder_' + $data, 'fullpath': $data  }">
                 </li>
+                <!-- TODO: make the above block a template, ditto for files. -->
+                <!--<div data-bind="template: { 'name':'dragfolder', 'data': model.viewModel } "></div>-->
             </ul>
         </div>
-
     </script>
     <script id="files" type="text/html">
         <div class="divFiles">
@@ -149,8 +152,7 @@
                          data-bind="text: $data,
                                             click: function() {model.viewModel.deleteFile($data, false);}" />
                     <img src="img/download.svg" class="clickable downloadicon" title="Download file"
-                         data-bind="text: $data,
-                                     click: $root.downloadFile" />
+                         data-bind="click: function() {model.viewModel.downloadFile($data);}" />
                     <li class="clickable file" draggable="true"
                         data-bind="text: $root.getFileNameFromPath($data),
                                 click: $root.selectFile,
@@ -167,7 +169,7 @@
     <script src="js/FileMan.js"></script>
     <script src="js/draganddrop.js"></script>
 
-    <!-- Note:
+    <!-- Notes:
     1. event.stopPropagation() : When I added the functionality that closes a card's content when you click the
                                  header, the content also closed if I clicked on a child element inside the header.
                                  Putting event.stopPropagation() in the onclick handler of the child element stops that propagation.
@@ -238,12 +240,12 @@
                 </div>
             </div>
             <div class="rightPanel">
-                <div class="cell" data-bind="template: { name: 'search', data: model.viewModel } "></div>
-                <div class="cell" data-bind="template: { name: 'upload', data: model.viewModel } "></div>
+                <div xclass="cell" data-bind="template: { name: 'search', data: model.viewModel } "></div>
+                <div xclass="cell" data-bind="template: { name: 'upload', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'folders', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'files', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'filecontents', data: model.viewModel } "></div>
-                <div class="cell" data-bind="template: { name: 'status', data: model.viewModel } "></div>
+                <div xclass="cell" data-bind="template: { name: 'status', data: model.viewModel } "></div>
             </div>
         </div>
         <footer>

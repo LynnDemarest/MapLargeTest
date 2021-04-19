@@ -10,57 +10,87 @@ using System.Configuration;
 
 namespace TestProject.Controllers
 {
+
+    class JsonResponse
+    {
+        public bool success { get; set; }
+        public string msg { get; set; }
+        public object data { get; set; }
+
+        public JsonResponse(bool success, string msg, object data)
+        {
+            this.success = success;
+            this.msg = msg;
+            this.data = data;
+        }
+    }
+    
     public class DefaultController : Controller
     {
         // GET: Default
         public ActionResult Test()
         {
-            return Content("test");
+            return Content("This is the API at /Default/[Action]");
         }
 
+        /*
+         *  Helper functions
+         * 
+         */
 
+        // MakeResponse
+        // Makes standard success/msg response used for many functions. 
         //
-        // Returns a JSON representation of the folder tree, without files. 
-        // 
-        //
-        // 
-        //
-        [HttpPost]
-        public JsonResult getFullDirectoryTree(string rootpath)
+        private Dictionary<string, string> MakeResponse(string success, string msg)
         {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
 
-            string newpath = Server.MapPath(Path.Combine(ConfigurationManager.AppSettings["rootFolder"], rootpath));
+            dict.Add("success", success);
+            dict.Add("msg", msg);
 
-            DirectoryInfo di = new DirectoryInfo(newpath);
-            FolderTree tree = WalkDirectoryTree(di);
+            return dict;
 
-            //return Json("Full tree here for " + rootpath);
-            return Json(tree);
+        }
+
+        private string getRoot()
+        {
+            return ConfigurationManager.AppSettings["rootFolder"];
         }
 
         // RemoveRootFolder
-        // Removes the server-mapped root folder from the path
+        // Removes the server-mapped root folder prefix from the path.
         //
         private string RemoveRootFolder(string path)
         {
-            string rootFolder = Server.MapPath(ConfigurationManager.AppSettings["rootFolder"]);
+            string rootFolder = Server.MapPath(getRoot());
 
             string shortName = path.Replace(rootFolder, "");
 
             return shortName;
         }
 
+
+        // WalkDirectoryTree
+        //
+        // Recursive function to walk the directory tree and build the FolderTree object. 
+        // This function largely lifted from Microsoft, except that we added the building of FolderTree. 
+        //
+        // https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-iterate-through-a-directory-tree
+        //
         private FolderTree WalkDirectoryTree(System.IO.DirectoryInfo root)
         {
-            string rootFolder = ConfigurationManager.AppSettings["rootFolder"];
+            string rootFolder = getRoot();
 
             string shortName = RemoveRootFolder(root.FullName);
+
+            // FolderTree: name, list of FolderTree objects, list of filenames. 
+            //
+            // 
             FolderTree tree = new FolderTree(shortName, new List<string>()); ;
 
             System.IO.FileInfo[] files = null;
             System.IO.DirectoryInfo[] subDirs = null;
 
-            // First, process all the files directly under this folder
             try
             {
                 files = root.GetFiles("*.*");
@@ -75,27 +105,21 @@ namespace TestProject.Controllers
                 // log.Add(e.Message);
                 throw;
             }
-
             catch (System.IO.DirectoryNotFoundException e)
             {
-                //Console.WriteLine(e.Message);
                 throw;
             }
 
             if (files != null)
             {
-
                 foreach (System.IO.FileInfo fi in files)
                 {
-                    // In this example, we only access the existing FileInfo object. If we
-                    // want to open, delete or modify the file, then
-                    // a try-catch block is required here to handle the case
-                    // where the file has been deleted since the call to TraverseTree().
-                    // Console.WriteLine(fi.FullName);
-                    tree.files.Add(RemoveRootFolder(fi.FullName));
+                    tree.files.Add(RemoveRootFolder(fi.FullName));  // we only want the path relative to root 
                 }
             }
+            //
             // Now find all the subdirectories under this directory.
+            //
             subDirs = root.GetDirectories();
             if (subDirs != null)
             {
@@ -109,55 +133,103 @@ namespace TestProject.Controllers
             return tree;
         }
 
+        /*
+         *  API calls 
+         * 
+         * 
+         * 
+         * 
+         * 
+         */
 
 
+        // getFullDirectoryTree
+        //
+        // Returns a JSON representation of the folder tree, with files. 
+        // In the app, this is only called for the "root" folder, rootpath = "",  but could be used to create a tree
+        // starting at any folder below the root.
+        // 
+        //
+        [HttpPost]
+        public JsonResult getFullDirectoryTree(string rootpath)
+        {
+            string newpath = Server.MapPath(Path.Combine(getRoot(), rootpath));
+
+            DirectoryInfo di = new DirectoryInfo(newpath);
+            FolderTree tree = WalkDirectoryTree(di);
+
+            return Json(tree);
+        }
+             
+
+
+        // searchFolder
+        //
+        // Searches files for a search phrase starting at path, which is relative to root. 
+        //
         [HttpPost]
         public JsonResult searchFolder(string searchphrase, string path)
         {
+            JsonResponse resp; 
+
             try
             {
                 if (!searchphrase.Contains("*"))
                 {
-                    searchphrase = $"*{searchphrase}*";
+                    searchphrase = $"*{searchphrase}*";  // add wildcards if user didn't
                 }
 
                 var p = Server.UrlDecode(path);
-                string newpath = Server.MapPath(Path.Combine(ConfigurationManager.AppSettings["rootFolder"], p));
+                string newpath = Server.MapPath(Path.Combine(getRoot(), p));
                 string[] files = Directory.GetFiles(newpath, searchphrase, SearchOption.AllDirectories);
 
                 // remove the absolute part of the path for each file 
-                string prefix = Server.MapPath(Path.Combine(ConfigurationManager.AppSettings["rootFolder"]));
+                string prefix = Server.MapPath(Path.Combine(getRoot()));
                 for (int x = 0; x < files.Count(); x++)
                 {
                     files[x] = files[x].Replace(prefix, "");
                 }
 
-                return Json(files);
+                resp = new JsonResponse(true, $"{files.Count()} files found.", files);
+                //return Json(resp);
             }
             catch (Exception ex)
             {
-                throw new Exception("Could not find path. Error was: " + ex.Message);
+                resp = new JsonResponse(false, $"Error: {ex.Message}", null);
             }
-
+            return Json(resp);
         }
 
+        // AddFolder
         //
         // Adds the new path, which is guaranteed to be one segment longer than an existing path.
         //
+        [HttpPost]
         public JsonResult AddFolder(string newfolderpath)
         {
+            Dictionary<string, string> resp; 
             try
             {
-                newfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], newfolderpath);
-                System.IO.Directory.CreateDirectory(Server.MapPath(newfolderpath));
+                var newpath = Path.Combine(getRoot(), newfolderpath);
+                string fullpath = Server.MapPath(newpath);
+                if (Directory.Exists(fullpath))
+                {
+                    resp = MakeResponse("false", $"Did not create {newfolderpath}. It already exists.");
+                }
+                else
+                {
+                    System.IO.Directory.CreateDirectory(fullpath);
+                    resp = MakeResponse("true", $"{newfolderpath} created.");
+                }
             }
             catch (Exception ex)
             {
-                throw;
+                resp = MakeResponse("false", $"Could not add folder {newfolderpath}. Error: {ex.Message}");    
             }
-
-            return Json($"{newfolderpath} created.");
+            return Json(resp);
         }
+
+
         //public JsonResult DeleteFolder(string folderpath)
         //{
         //    try
@@ -180,10 +252,10 @@ namespace TestProject.Controllers
             {
                 if (fromfolderpath == tofolderpath) throw new Exception("Can't move to the same location.");
 
-                fromfolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], fromfolderpath);
+                fromfolderpath = Path.Combine(getRoot(), fromfolderpath);
                 string dirname = Path.GetFileName(fromfolderpath);
                 if (dirname == "") dirname = "root";
-                tofolderpath = Path.Combine(ConfigurationManager.AppSettings["rootFolder"], tofolderpath, dirname);
+                tofolderpath = Path.Combine(getRoot(), tofolderpath, dirname);
                 fromfolderpath = Server.MapPath(fromfolderpath);
                 tofolderpath = Server.MapPath(tofolderpath);
 
@@ -279,13 +351,13 @@ namespace TestProject.Controllers
 
                 var folders = di.GetDirectories();
                 if (folders.Count() > 0)
-                    folderData.folders = folders.Select(x => x.Name).ToArray();
+                    folderData.folders = folders.Select(x => x.FullName.Replace(root, "")).ToArray();
                 else
                     folderData.folders = new List<string>().ToArray();
 
                 var files = di.GetFiles();
                 if (files.Count() > 0)
-                    folderData.files = files.Select(x => x.Name).ToArray();
+                    folderData.files = files.Select(x => x.FullName.Replace(root,"")).ToArray();
                 else folderData.files = new List<string>().ToArray(); // TODO: ???
 
                 //return new JsonResult(Newtonsoft.Json.JsonConvert.SerializeObject(folderData));
@@ -417,22 +489,25 @@ namespace TestProject.Controllers
         }
 
         [HttpPost]
-        public string GetFile(string filepath)
+        public ActionResult GetFile(string filepath)
         {
+            JsonResponse resp;
+
             string rootPath = ConfigurationManager.AppSettings["rootFolder"];
             string fullpath = Path.Combine(rootPath, filepath);
             string data = "";
             try
             {
                 data = System.IO.File.ReadAllText(Server.MapPath(fullpath));
+
+                resp = new JsonResponse(true, $"{filepath} was read", data);
             }
             catch (Exception ex)
             {
-                throw;
+                resp = new JsonResponse(false, $"{filepath} was not read. Error: {ex.Message}", null);
             }
 
-
-            return data;
+            return Json(resp);
         }
 
 

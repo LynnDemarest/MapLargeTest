@@ -12,61 +12,82 @@ function updateDragClassesAndHandlers() {
 
     const files = document.querySelectorAll(".file");
     for (var f of files) {
-        f.removeEventListener("dragstart", dragStart);
-        f.removeEventListener("dragend", dragEnd);
+        if (f.getAttribute("dragEventsOK") == null) {
+            // model.viewModel.UpdateStatusMessage("Setting drag event handlers : " + f.innerText);
+            consolelog("Setting drag event handlers for file : " + f.innerText);
+            //f.removeEventListener("dragstart", dragStart);
+            //f.removeEventListener("dragend", dragEnd);
 
-        f.addEventListener("dragstart", dragStart);
-        f.addEventListener("dragend", dragEnd);
+            f.addEventListener("dragstart", dragStart);
+            f.addEventListener("dragend", dragEnd);
+
+            f.setAttribute("dragEventsOK", 'true');
+        }
     }
 
     const folders = document.querySelectorAll('.folder');
     for (var d of folders) {
-        d.removeEventListener("dragstart", dragStart);
-        d.removeEventListener("dragend", dragEnd);
-        d.removeEventListener("dragover", dragOver);
-        d.removeEventListener("dragenter", dragEnter);
-        d.removeEventListener("dragleave", dragLeave);
-        d.removeEventListener("drop", dragDrop);
+        if (d.getAttribute("dragEventsOK") == null) {
 
-        d.addEventListener("dragstart", dragStart);
-        d.addEventListener("dragend", dragEnd);
-        d.addEventListener("dragover", dragOver);
-        d.addEventListener("dragenter", dragEnter);
-        d.addEventListener("dragleave", dragLeave);
-        d.addEventListener("drop", dragDrop);
+            consolelog("Setting drag event handlers for folder : " + d.innerText);
+
+            //d.removeEventListener("dragstart", dragStart);
+            //d.removeEventListener("dragend", dragEnd);
+            //d.removeEventListener("dragover", dragOver);
+            //d.removeEventListener("dragenter", dragEnter);
+            //d.removeEventListener("dragleave", dragLeave);
+            //d.removeEventListener("drop", dragDrop);
+
+            d.addEventListener("dragstart", dragStart);
+            d.addEventListener("dragend", dragEnd);
+            d.addEventListener("dragover", dragOver);
+            d.addEventListener("dragenter", dragEnter);
+            d.addEventListener("dragleave", dragLeave);
+            d.addEventListener("drop", dragDrop);
+
+            d.setAttribute("dragEventsOK", 'true');
+        }
     }
+
 
     // Note: There's only one trashcan now, but if you want to add more you can
     //       because of querySelectorAll. Also, the code is more consistent this way. 
     const trashcans = document.querySelectorAll('.trashicon');
     for (var t of trashcans) {
-        t.removeEventListener("dragover", dragOver);
-        t.removeEventListener("dragenter", dragEnterTrash)
-        t.removeEventListener("dragleave", dragLeaveTrash)
-        t.removeEventListener("drop", dragDelete);
 
+        if (t.getAttribute("dragEventsOK") == null) {
 
-        t.addEventListener("dragover", dragOver);
-        t.addEventListener("dragenter", dragEnterTrash)
-        t.addEventListener("dragleave", dragLeaveTrash)
-        t.addEventListener("drop", dragDelete);
+            consolelog("Setting drag event handlers for trashicon : " + t.innerText);
+
+            //t.removeEventListener("dragover", dragOver);
+            //t.removeEventListener("dragenter", dragEnterTrash)
+            //t.removeEventListener("dragleave", dragLeaveTrash)
+            //t.removeEventListener("drop", dragDelete);
+
+            t.addEventListener("dragover", dragOver);
+            t.addEventListener("dragenter", dragEnterTrash)
+            t.addEventListener("dragleave", dragLeaveTrash)
+            t.addEventListener("drop", dragDelete);
+
+            t.setAttribute("dragEventsOK", 'true');
+        }
     }
-    
+
 }
 
-//
+// dragStart
 //
 //
 function dragStart(e) {
-    console.log("dragStart currentTarget.id = " + e.currentTarget.id);
-    console.log("dragStart target.id = " + e.target.id);
+    consolelog("dragStart currentTarget.id = " + e.currentTarget.id);
+    consolelog("dragStart target.id = " + e.target.id);
     //debugger;
     var fullpath = e.currentTarget.attributes.fullpath.nodeValue;
     e.dataTransfer.setData("text", fullpath);
-    console.log("text set to " + fullpath);
+    consolelog("text set to " + fullpath);
 }
 
-//
+// dragEnd
 //
 //
 function dragEnd(e) {
@@ -76,6 +97,9 @@ function dragEnd(e) {
 
 }
 
+// dragDelete
+//
+//
 function dragDelete(e) {
     //alert(JSON.stringify(e));
     var frompath = e.dataTransfer.getData("text");
@@ -86,17 +110,26 @@ function dragDelete(e) {
     e.currentTarget.classList.add("trashicon");
     model.viewModel.deleteFile(frompath, bForced);
 }
+
+// dragEnterTrash
+//
+//
 function dragEnterTrash(e) {
     e.preventDefault();
     e.currentTarget.classList.add("trashiconhover");
     e.currentTarget.classList.remove("trashicon");
 
 }
+
+// dragLeaveTrash
+//
+//
 function dragLeaveTrash(e) {
     e.currentTarget.classList.remove("trashiconhover");
     e.currentTarget.classList.add("trashicon");
 }
-//
+
+// dragDrop
 //
 //
 function dragDrop(e) {
@@ -129,49 +162,30 @@ function dragDrop(e) {
     } else {
         alert(frompath + " >>> " + topath);
     }
-    //updateDragClassesAndHandlers();
-}
-
-//
-//
-//
-function copyFile(frompath, topath) {
-    //alert("Would move " + frompath + " to " + topath);
-    //return; 
-    $.ajax({
-        url: '/default/CopyFile',
-        method: "POST",                // should always delete with POST 
-        data: { frompath, topath }
-    }).done(function (res) {
-        //debugger;
-        consolelog(JSON.stringify(res));
-
-        model.viewModel.refreshBothLists();
-
-        // TODO: Only do this if the file just deleted is in the search listing
-        // 
-        model.viewModel.doSearch();
-
-        model.viewModel.UpdateStatusMessage(res.statusText);
-    }).fail(function (err) {
-        consolelog('Error: ' + err);
-        model.viewModel.UpdateStatusMessage(err);
-    });
 
 }
 
+
+// dragOver and dragEnter
+//
 // Note: It is required that any drop target handle both dragOver and dragEnter, 
 //       and that e.preventDefault() be executed in each. 
+//
 // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop
 //
 function dragOver(e) {
     e.preventDefault();
 }
+// dragEnter
+//
+//
 function dragEnter(e) {
     e.preventDefault();
     e.currentTarget.classList.add("dragEnter");
 }
+// dragLeave
+//
+//
 function dragLeave(e) {
     e.currentTarget.classList.remove("dragEnter");
-
 }

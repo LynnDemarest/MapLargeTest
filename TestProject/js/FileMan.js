@@ -88,9 +88,14 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     self.getCurrentFileContents = async () => {
 
-        var xxx = self.currentFile().subscribe((p) => {
-            alert(p);
-        })
+        //
+        // if currentFile were an actual observable..
+        //
+        //self.currentFile.subscribe(
+        //    p => alert("Subscribed to currentFile: " + p),
+        //    err => alert(err),
+        //    () => alert("finally")
+        //);
 
         var path = self.currentFile();
 
@@ -98,20 +103,59 @@ function FileManModel(searchPhrase, rootFolder) {
             consolelog('Loading : ' + path);
 
             // https://api.jquery.com/jquery.ajax/
-            await $.ajax({
-                url: '/default/GetFile',
-                method: "POST",
-                data: { 'filepath': path }
-            }).done(function (res) {
-                self.currentFileContents(res);
-                consolelog('Done loading : ' + path);
-            })
-                .fail(function (err) {
-                    self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.statusText}`);
-                });
+
+            await self.getFile(path);
+
+        //    await $.ajax({
+        //        url: '/default/GetFile',
+        //        method: "POST",
+        //        data: { 'filepath': path }
+        //    }).done(function (res) {
+        //        var [success, msg, data] = self.getParams(res);
+
+        //        if (success) self.currentFileContents(data);
+
+        //        self.UpdateStatusMessage(msg);
+        //        consolelog(msg);
+
+        //    }).fail(function (err) {
+        //            self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
+        //    });
         } else {
             self.UpdateStatusMessage("Can't display that kind of file. Try downloading it.");
         }
+    }
+
+    self.getFile = (path) => {
+        return $.ajax({
+            url: '/default/GetFile',
+            method: "POST",
+            data: { 'filepath': path }
+        }).done(function (res) {
+            var [success, msg, data] = self.getParams(res);
+
+            if (success) self.currentFileContents(data);
+
+            self.UpdateStatusMessage(msg);
+            consolelog(msg);
+
+        }).fail(function (err) {
+            self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
+        });
+
+    }
+
+
+    // getParams
+    // Picks success, msg, and data from an incoming ajax response, returns it as an array that can be deconstructed.
+    //
+    self.getParams = (res) =>
+    {
+        var success = res.success;
+        var msg = res.msg;
+        var data = res.data;
+
+        return [success, msg, data];
     }
 
     // addFolder
@@ -133,10 +177,21 @@ function FileManModel(searchPhrase, rootFolder) {
             method: "POST",
             data: { 'newfolderpath': path }
         }).done(function (res) {
-            consolelog('Done creating : ' + path + ' ' + res);
-            self.refreshBothLists();
+            //var success = res.success == "true";
+            //var msg = res.msg;
+            var [success, msg, data] = self.getParams(res);
+
+            consolelog(msg);
+            self.UpdateStatusMessage(msg);
+
+            if (success) {
+                self.refreshBothLists();
+            }
+            else {
+                self.UpdateStatusMessage(msg);
+            }
         }).fail(function (err) {
-            self.UpdateStatusMessage(`${path} could not be added. Error: ${err.statusText}`);
+            self.UpdateStatusMessage(`Error adding folder : ${err.statusText}`);
         });
 
     }
@@ -146,23 +201,35 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     self.downloadFile = async (filename) => {
         var path = filename;
-        var rootFolder = self.rootFolder();
+        //var rootFolder = self.rootFolder();
 
         // https://api.jquery.com/jquery.ajax/
-        await $.ajax({
-            url: '/default/GetFile',
-            method: "POST",
-            data: { 'filepath': path }
-        }).done(function (res) {
-            //self.UpdateStatusMessage('Done loading : ' + path);
-            var contentType = self.GetContentTypeForFilename(path);
-            //
-            // in index.html
-            //
-            download(res, filename, contentType);
-        }).fail(function (err) {
-            self.UpdateStatusMessage('Error: ' + err.statusText);
+        //alert(filename);
+        //debugger;
+        await self.getFile(filename).then((res) => {
+            var [success, msg, data] = self.getParams(res);
+
+            self.UpdateStatusMessage(msg);
+            if (success) {
+                var contentType = self.GetContentTypeForFilename(path);
+                download(data, filename, contentType);
+            }
         });
+
+        //await $.ajax({
+        //    url: '/default/GetFile',
+        //    method: "POST",
+        //    data: { 'filepath': path }
+        //}).done(function (res) {
+        //    //self.UpdateStatusMessage('Done loading : ' + path);
+        //    var contentType = self.GetContentTypeForFilename(path);
+        //    //
+        //    // in index.html
+        //    //
+        //    download(res, filename, contentType);
+        //}).fail(function (err) {
+        //    self.UpdateStatusMessage('Error: ' + err.statusText);
+        //});
     }
 
     // GetContentTypeForFilename
@@ -423,11 +490,15 @@ function FileManModel(searchPhrase, rootFolder) {
             data: { searchphrase, path }
         })
             .done(function (res) {
-                //alert(JSON.stringify(res));
-                self.searchResults(res);
-                self.UpdateStatusMessage(`Search for found ${res.length} files.`);
+                var success = res.success;
+                var msg = res.msg;
+                var data = res.data;
 
-                self.numberOfSearchResults(res.length);
+                //alert(JSON.stringify(res));
+                self.searchResults(data);
+                self.UpdateStatusMessage(msg);
+
+                self.numberOfSearchResults(data.length);
 
                 self.updateUrlWithState();
 
@@ -435,7 +506,7 @@ function FileManModel(searchPhrase, rootFolder) {
             })
             .fail(function (err) {
                 alert("There was an error searching. See the log for details.");
-                self.UpdateStatusMessage('Search Error: ' + JSON.stringify(err));
+                self.UpdateStatusMessage(err.responseText);
             });
     }
 
@@ -497,11 +568,11 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.folders(res.folders);
                 self.rootFolder(res.relativePath);
 
-                var prefix = "";
-                if (res.relativePath != "") {
-                    prefix = res.relativePath + "\\";
-                    res.files = res.files.map((x) => prefix + x);
-                }
+                //var prefix = "";
+                //if (res.relativePath != "") {
+                //    prefix = res.relativePath + "\\";
+                //    res.files = res.files.map((x) => prefix + x);
+                //}
                 self.files(res.files);
 
                 self.numberOfFiles(res.files.length);

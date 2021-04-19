@@ -24,6 +24,9 @@ namespace TestProject.Models
             this.files = files;
             this.folders = new List<FolderTree>();
         }
-
+        public override string ToString()
+        {
+            return this.path;
+        }
     }
 }
