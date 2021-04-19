@@ -206,6 +206,7 @@ function FileManModel(searchPhrase, rootFolder) {
         // https://api.jquery.com/jquery.ajax/
         //alert(filename);
         //debugger;
+        //
         await self.getFile(filename).then((res) => {
             var [success, msg, data] = self.getParams(res);
 

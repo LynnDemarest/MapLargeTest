@@ -1,6 +1,7 @@
 ﻿//
 // drag and drop
 //
+const bDEBUG = false; 
 
 // updateDragClassesAndHandlers
 // Hooks up various events to .file and .folder and .trashicon elements. 
@@ -13,15 +14,12 @@ function updateDragClassesAndHandlers() {
     const files = document.querySelectorAll(".file");
     for (var f of files) {
         if (f.getAttribute("dragEventsOK") == null) {
-            // model.viewModel.UpdateStatusMessage("Setting drag event handlers : " + f.innerText);
-            consolelog("Setting drag event handlers for file : " + f.innerText);
-            //f.removeEventListener("dragstart", dragStart);
-            //f.removeEventListener("dragend", dragEnd);
+            if (bDEBUG) consolelog("Setting drag event handlers for file : " + f.innerText);
 
             f.addEventListener("dragstart", dragStart);
             f.addEventListener("dragend", dragEnd);
 
-            f.setAttribute("dragEventsOK", 'true');
+            f.setAttribute("dragEventsOK", 'true');  // set attribute so we don't set event handlers again
         }
     }
 
@@ -29,15 +27,8 @@ function updateDragClassesAndHandlers() {
     for (var d of folders) {
         if (d.getAttribute("dragEventsOK") == null) {
 
-            consolelog("Setting drag event handlers for folder : " + d.innerText);
-
-            //d.removeEventListener("dragstart", dragStart);
-            //d.removeEventListener("dragend", dragEnd);
-            //d.removeEventListener("dragover", dragOver);
-            //d.removeEventListener("dragenter", dragEnter);
-            //d.removeEventListener("dragleave", dragLeave);
-            //d.removeEventListener("drop", dragDrop);
-
+            if (bDEBUG) consolelog("Setting drag event handlers for folder : " + d.innerText);
+            
             d.addEventListener("dragstart", dragStart);
             d.addEventListener("dragend", dragEnd);
             d.addEventListener("dragover", dragOver);
@@ -57,12 +48,7 @@ function updateDragClassesAndHandlers() {
 
         if (t.getAttribute("dragEventsOK") == null) {
 
-            consolelog("Setting drag event handlers for trashicon : " + t.innerText);
-
-            //t.removeEventListener("dragover", dragOver);
-            //t.removeEventListener("dragenter", dragEnterTrash)
-            //t.removeEventListener("dragleave", dragLeaveTrash)
-            //t.removeEventListener("drop", dragDelete);
+            if (bDEBUG) consolelog("Setting drag event handlers for trashicon : " + t.innerText);
 
             t.addEventListener("dragover", dragOver);
             t.addEventListener("dragenter", dragEnterTrash)
@@ -81,7 +67,6 @@ function updateDragClassesAndHandlers() {
 function dragStart(e) {
     consolelog("dragStart currentTarget.id = " + e.currentTarget.id);
     consolelog("dragStart target.id = " + e.target.id);
-    //debugger;
     var fullpath = e.currentTarget.attributes.fullpath.nodeValue;
     e.dataTransfer.setData("text", fullpath);
     consolelog("text set to " + fullpath);
@@ -91,20 +76,17 @@ function dragStart(e) {
 //
 //
 function dragEnd(e) {
-    //console.log("dragEnd currentTarget.id = " + e.currentTarget.id);
-    //console.log("dragEnd target.id = " + e.target.id);
-    //console.log("text = " + e.dataTransfer.getData("text"));
 
 }
 
 // dragDelete
-//
+// Drop target is trashicon. 
 //
 function dragDelete(e) {
-    //alert(JSON.stringify(e));
+    
     var frompath = e.dataTransfer.getData("text");
-    //alert(frompath);
-    var bForced = e.ctrlKey;
+    
+    var bForced = e.ctrlKey;   // delete folder even if not empty 
 
     e.currentTarget.classList.remove("trashiconhover");
     e.currentTarget.classList.add("trashicon");
@@ -134,35 +116,25 @@ function dragLeaveTrash(e) {
 //
 function dragDrop(e) {
     //e.preventDefault();
-    //console.log("dragDrop target.id = " + e.target.id);  // folder_0
-    //console.log("dragDrop currentTarget = " + JSON.stringify(e.currentTarget));
-    //debugger;
+    if (bDEBUG) consolelog("dragDrop target.id = " + e.target.id);  // folder_0
+    if (bDEBUG) consolelog("dragDrop currentTarget = " + JSON.stringify(e.currentTarget));
+    
     var frompath = e.dataTransfer.getData("text");
-    //console.log("text = " + file);
+    if (bDEBUG) consolelog("text = " + file);
 
     var topath;
-    //frompath = document.getElementById(file).attributes.fullpath.textContent;
-    //topath = document.getElementById(e.target.id).innerText;
     topath = document.getElementById(e.target.id).attributes.fullpath.textContent;
 
     // dragLeave doesn't get fired if dragDrop is fired, so remove the highlight here.
     //
     e.currentTarget.classList.remove("dragEnter");
 
-    //alert(JSON.stringify(e));
-    //debugger;
-    if (true) {
-        if (e.ctrlKey === true) {
-            model.viewModel.copyFile(frompath, topath);
-            //copyFile(frompath, topath);
-        }
-        else {
-            model.viewModel.moveFile(frompath, topath);
-        }
-    } else {
-        alert(frompath + " >>> " + topath);
+    if (e.ctrlKey === true) {
+        model.viewModel.copyFile(frompath, topath);
     }
-
+    else {
+        model.viewModel.moveFile(frompath, topath);
+    }
 }
 
 
