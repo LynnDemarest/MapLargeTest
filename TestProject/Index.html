@@ -16,7 +16,7 @@
         Note: These make it easier to move panels around in the main layout.
         TODO: move them to another file.
     -->
-    
+
     <script id="current-folder" type="text/html">
         <div class="divCurrentFolder">
             <div class="currentfolder">
@@ -63,8 +63,8 @@
                             <img src="img/download.svg" class="clickable downloadicon" title="Download file"
                                  data-bind="text: $data,
                                      click: $root.downloadFile" />
-                            <li class="clickable file" draggable="true" 
-                                 data-bind="text: $data,
+                            <li class="clickable file" draggable="true"
+                                data-bind="text: $data,
                                             click: $root.selectFile,
                                             attr: { 'fullpath': $data }">
                             </li>
@@ -183,22 +183,27 @@
 
 </head>
 <body>
-    
+
     <div id="knockoutContainer">
+        <!-- This shows the cached collapsed folders, for debugging
+        <div data-bind="foreach: collapsedFolders">
+            <span data-bind="text: $data"></span>
+        </div>
+        -->
         <h1>SPA File Manager</h1>
         <div data-bind="template: { name: 'current-folder', data: model.viewModel } "></div>
         <div class="flexcontainer">
             <div class="leftPanel">
                 <!-- Note: Can't "template-ize" this block because it already uses a template?
-                TODO: sometimes when dragging folders to the trashcan the panel collapses.
-            -->
+                    TODO: sometimes when dragging folders to the trashcan the panel collapses.
+                -->
                 <div class="divDirectoryTree">
                     <div id="treeviewheader" class="header" onclick="toggleNext(this);" style="display:flex;justify-content:space-between;">
 
                         <div>
                             Tree View
                             <!--span data-bind="text: DirectoryTree().path"></span>
-                        <span data-bind="if: DirectoryTree().path === ''">root</span-->
+                            <span data-bind="if: DirectoryTree().path === ''">root</span-->
                             <br />
                             <span class="tinytextwhite">Drag and drop files and folders to move them.<br />Hold down Ctrl key to copy.</span>
                         </div>
@@ -212,15 +217,16 @@
                     <div class="divDirectoryTreeContainer">
                         <!-- DirectoryTree template -->
                         <script id="treeTemplate" type="text/html">
-                            <ul class="folderUL" >
+                            <ul class="folderUL">
                                 <!--<div data-bind="if: $data.path !== undefined;">-->
                                 <div style="display:flex;">
-                                    <li class="folder clickable" draggable="true" 
+                                    <li class="folder clickable" draggable="true"
                                         data-bind="text: $root.getFolderNameFromPath($data.path),
                                          click: $root.selectFolderObject,
-                                         attr: {id: 'folder_' + $data.path, fullpath: $data.path  }">
+                                         attr: {id: ('folder_' + $data.path), fullpath: $data.path  }">
                                     </li>
-                                    <div onclick="toggleChildren(this);" class="up"></div>
+                                    <div onclick="toggleChildren(this);" class="up"
+                                         data-bind="attr: { fullpath: $data.path }"></div>
                                 </div>
                                 <!--</div>-->
 
@@ -419,8 +425,8 @@
         }
 
         //
-        // Opens or Closes UL elements found under the element with the given id. 
-        // The element with the id is not closed. 
+        // Opens or Closes UL elements found under the element with the given id.
+        // The element with the id is not closed.
         //
         function toggleChildren(obj) {
             //alert("toggleChildren " + obj);
@@ -429,18 +435,24 @@
             o.nextAll("ul").slideToggle();
 
             var io = $(obj);
+            var fullpath = io.attr("fullpath");
             if (io.hasClass("up")) {
                 io.removeClass("up");
                 io.addClass("down");
+                model.viewModel.addToCollapsed(fullpath);
             } else {
                 io.removeClass("down");
                 io.addClass("up");
+                model.viewModel.removeFromCollapsed(fullpath);
             }
+
+
         }
 
 
 
     </script>
+
 
 
 </body>

@@ -16,6 +16,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.newFolderName = ko.observable("");
 
     self.DirectoryTree = ko.observableArray();
+    self.collapsedFolders = ko.observableArray(["aaa"]);
 
     // This is the current root folder name or "root" for the beginning "" folder.
     //
@@ -45,6 +46,18 @@ function FileManModel(searchPhrase, rootFolder) {
         return data == self.currentFile();
     };
 
+    self.pathIsCollapsed = (path) => {
+        return (self.collapsedFolders.indexOf(path) >= 0);
+    }
+    self.removeFromCollapsed = (path) => {
+        self.collapsedFolders.remove(path);
+    }
+    self.addToCollapsed = (path) => {
+        console.log("added " + path + " to collapsed");
+        if (!self.pathIsCollapsed(path)) {
+            self.collapsedFolders.push(path);
+        }
+    }
 
     // selectFolder
     // User clicks on folder name. The name of the folder is passed in automatically by knockout. 
@@ -546,13 +559,29 @@ function FileManModel(searchPhrase, rootFolder) {
             // To view the json data, uncomment this and run the program.
             // self.currentFileContents(JSON.stringify(res, null, '\t'));
 
+            
             self.DirectoryTree(res);  // knockoutJS template works its magic 
 
+            //
+            // collapse any paths in collapseFolders array
+            //
+            if (self.collapsedFolders().length > 0) {
+                var arr = self.collapsedFolders();
+                arr.forEach(d => {
+                    $.each($(".up"), (idx, val) => {
+                        if (self.pathIsCollapsed( $(val).attr("fullpath") ))
+                        {
+                            val.click();
+                        }
+                    });
+                });
+            }
+            
         }).fail(function (err) {
             self.UpdateStatusMessage('Error: ' + err);
         });
     }
-
+    
 
 
     // getFolderData
