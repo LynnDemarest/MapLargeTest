@@ -212,12 +212,16 @@
                     <div class="divDirectoryTreeContainer">
                         <!-- DirectoryTree template -->
                         <script id="treeTemplate" type="text/html">
-                            <ul class="folderUL">
+                            <ul class="folderUL" >
                                 <!--<div data-bind="if: $data.path !== undefined;">-->
-                                <li class="folder clickable" draggable="true" data-bind="text: $root.getFolderNameFromPath($data.path),
+                                <div style="display:flex;">
+                                    <li class="folder clickable" draggable="true" 
+                                        data-bind="text: $root.getFolderNameFromPath($data.path),
                                          click: $root.selectFolderObject,
                                          attr: {id: 'folder_' + $data.path, fullpath: $data.path  }">
-                                </li>
+                                    </li>
+                                    <div onclick="toggleChildren(this);" class="up"></div>
+                                </div>
                                 <!--</div>-->
 
                                 <ul data-bind="foreach: $data.files" class="fileUL">
@@ -240,8 +244,8 @@
                 </div>
             </div>
             <div class="rightPanel">
-                <div xclass="cell" data-bind="template: { name: 'search', data: model.viewModel } "></div>
-                <div xclass="cell" data-bind="template: { name: 'upload', data: model.viewModel } "></div>
+                <div data-bind="template: { name: 'search', data: model.viewModel } "></div>
+                <div data-bind="template: { name: 'upload', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'folders', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'files', data: model.viewModel } "></div>
                 <div data-bind="template: { name: 'filecontents', data: model.viewModel } "></div>
@@ -261,7 +265,7 @@
     </div>
     <script>
 
-        const bLogging = true;
+        const bLogging = false;
 
         // To pass searchPhrase and rootFolder on the URL:
         //      /Index.html#searchPhrase&rootFolder
@@ -412,6 +416,26 @@
         function openNext(obj) {
             var o = obj.nextElementSibling;  // ignores comments and text inbetween HTML elements, unlike nextSibling.
             $(o).slideDown();
+        }
+
+        //
+        // Opens or Closes UL elements found under the element with the given id. 
+        // The element with the id is not closed. 
+        //
+        function toggleChildren(obj) {
+            //alert("toggleChildren " + obj);
+            //debugger;
+            var o = $(obj).parent();
+            o.nextAll("ul").slideToggle();
+
+            var io = $(obj);
+            if (io.hasClass("up")) {
+                io.removeClass("up");
+                io.addClass("down");
+            } else {
+                io.removeClass("down");
+                io.addClass("up");
+            }
         }
 
 

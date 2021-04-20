@@ -6,6 +6,8 @@
     --buttonText: white;
     --titlebackground: #7a0c6b;
     --marginbottom: .4rem;
+    --redfilter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+    --bluefilter: invert(8%) sepia(100%) saturate(6341%) hue-rotate(247deg) brightness(90%) contrast(145%);
 }
 
 body {
@@ -120,6 +122,25 @@ li {
     margin-bottom: 1rem;
 }
 
+.up {
+    background-image: url("../img/up.svg");
+    height: 15px;
+    width: 15px;
+    position: relative;
+    left:10px;
+    top:5px;
+    filter: var(--bluefilter);
+}
+.down {
+    background-image: url("../img/down.svg");
+    height: 15px;
+    width: 15px;
+    position: relative;
+    left: 10px;
+    top: 5px;
+    filter: var(--redfilter);
+}
+
 .folderUL {
     width: auto;
 }
@@ -153,7 +174,7 @@ li {
         margin-right: 10px;
         top: 3px;
         position: relative;
-        filter: invert(8%) sepia(100%) saturate(6341%) hue-rotate(247deg) brightness(90%) contrast(145%);
+        filter: var(--bluefilter);
     }
 
 
