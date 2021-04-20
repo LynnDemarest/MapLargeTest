@@ -6,17 +6,17 @@
 //
 function FileManModel(searchPhrase, rootFolder) {
     var self = this;
-    
+
     if (searchPhrase == undefined) searchPhrase = "";
     if (rootFolder == undefined) rootFolder = "";
 
     self.rootFolder = ko.observable(rootFolder);
     self.searchPhrase = ko.observable(searchPhrase);
-        
+
     self.newFolderName = ko.observable("");
 
     self.DirectoryTree = ko.observableArray();
-    self.collapsedFolders = ko.observableArray(["aaa"]);
+    self.collapsedFolders = ko.observableArray();
 
     // This is the current root folder name or "root" for the beginning "" folder.
     //
@@ -40,7 +40,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.numberOfFiles = ko.observable(0);
     self.statusMessage = ko.observable("");
 
-    
+
     self.isCurrentFile = (data) => {
         consolelog("isCurrentFile: " + data);
         return data == self.currentFile();
@@ -121,21 +121,21 @@ function FileManModel(searchPhrase, rootFolder) {
 
             await self.getFile(path);
 
-        //    await $.ajax({
-        //        url: '/default/GetFile',
-        //        method: "POST",
-        //        data: { 'filepath': path }
-        //    }).done(function (res) {
-        //        var [success, msg, data] = self.getParams(res);
+            //    await $.ajax({
+            //        url: '/default/GetFile',
+            //        method: "POST",
+            //        data: { 'filepath': path }
+            //    }).done(function (res) {
+            //        var [success, msg, data] = self.getParams(res);
 
-        //        if (success) self.currentFileContents(data);
+            //        if (success) self.currentFileContents(data);
 
-        //        self.UpdateStatusMessage(msg);
-        //        consolelog(msg);
+            //        self.UpdateStatusMessage(msg);
+            //        consolelog(msg);
 
-        //    }).fail(function (err) {
-        //            self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
-        //    });
+            //    }).fail(function (err) {
+            //            self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
+            //    });
         } else {
             self.UpdateStatusMessage("Can't display that kind of file. Try downloading it.");
         }
@@ -164,8 +164,7 @@ function FileManModel(searchPhrase, rootFolder) {
     // getParams
     // Picks success, msg, and data from an incoming ajax response, returns it as an array that can be deconstructed.
     //
-    self.getParams = (res) =>
-    {
+    self.getParams = (res) => {
         var success = res.success;
         var msg = res.msg;
         var data = res.data;
@@ -284,10 +283,10 @@ function FileManModel(searchPhrase, rootFolder) {
         // This is classic way of writing it.
         //
         await navigator.clipboard.writeText(self.currentFileContents())
-            .then( () => {
+            .then(() => {
                 /* clipboard successfully set */
                 self.UpdateStatusMessage(`Copied ${self.currentFile()} to clipboard.`);
-            }).catch( () => {
+            }).catch(() => {
                 /* clipboard write failed */
                 self.UpdateStatusMessage(`Could not copy ${self.currentFile()} to clipboard.`);
             });
@@ -426,7 +425,7 @@ function FileManModel(searchPhrase, rootFolder) {
                 //debugger;
                 consolelog(res);
                 self.UpdateStatusMessage(res);
-                
+
                 self.refreshBothLists();
                 // TODO: Only do this if the file just deleted is in the search listing
                 // 
@@ -559,29 +558,31 @@ function FileManModel(searchPhrase, rootFolder) {
             // To view the json data, uncomment this and run the program.
             // self.currentFileContents(JSON.stringify(res, null, '\t'));
 
-            
+
             self.DirectoryTree(res);  // knockoutJS template works its magic 
 
             //
             // collapse any paths in collapseFolders array
             //
             if (self.collapsedFolders().length > 0) {
-                var arr = self.collapsedFolders();
-                arr.forEach(d => {
-                    $.each($(".up"), (idx, val) => {
-                        if (self.pathIsCollapsed( $(val).attr("fullpath") ))
-                        {
-                            val.click();
-                        }
-                    });
+                $.each($(".up"), (idx, toggleIcon) => {
+                    
+                    var fullpath = $(toggleIcon).attr("fullpath");
+                    if (self.pathIsCollapsed(fullpath)) {
+                        // This makes the UI jump because folders are collapsed in turn. 
+                        //val.click();
+                        $(toggleIcon).parent().next("UL").css("display", "none");
+                        $(toggleIcon).addClass("down");
+                        $(toggleIcon).removeClass("up");
+                    }
                 });
             }
-            
+
         }).fail(function (err) {
             self.UpdateStatusMessage('Error: ' + err);
         });
     }
-    
+
 
 
     // getFolderData
@@ -595,30 +596,30 @@ function FileManModel(searchPhrase, rootFolder) {
         await $.ajax({
             url: '/default/getFolder?p=' + path
         }).done(function (res) {
-                if (path == "") path = "root";
-                self.UpdateStatusMessage(`Current Folder (${path}) refreshed.`);
-                self.folders(res.folders);
-                self.rootFolder(res.relativePath);
+            if (path == "") path = "root";
+            self.UpdateStatusMessage(`Current Folder (${path}) refreshed.`);
+            self.folders(res.folders);
+            self.rootFolder(res.relativePath);
 
-                //var prefix = "";
-                //if (res.relativePath != "") {
-                //    prefix = res.relativePath + "\\";
-                //    res.files = res.files.map((x) => prefix + x);
-                //}
-                self.files(res.files);
+            //var prefix = "";
+            //if (res.relativePath != "") {
+            //    prefix = res.relativePath + "\\";
+            //    res.files = res.files.map((x) => prefix + x);
+            //}
+            self.files(res.files);
 
-                self.numberOfFiles(res.files.length);
-                self.numberOfFolders(res.folders.length);
+            self.numberOfFiles(res.files.length);
+            self.numberOfFolders(res.folders.length);
 
-                self.updateUrlWithState();
-                //
-                // After files and folders are created, add drag-and-drop handlers to 
-                // elements with .file, .folder, and .trashicon
-                // 
-                updateDragClassesAndHandlers();
-            }).fail(function (err) {
-                self.UpdateStatusMessage('Error: ' + err);
-            });
+            self.updateUrlWithState();
+            //
+            // After files and folders are created, add drag-and-drop handlers to 
+            // elements with .file, .folder, and .trashicon
+            // 
+            updateDragClassesAndHandlers();
+        }).fail(function (err) {
+            self.UpdateStatusMessage('Error: ' + err);
+        });
     };
 
     self.getFileNameFromPath = (path) => {
