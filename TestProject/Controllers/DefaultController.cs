@@ -142,6 +142,45 @@ namespace TestProject.Controllers
          * 
          */
 
+        [HttpPost]
+        public JsonResult rename(string path, string newname)
+        {
+            JsonResponse resp = null;
+
+            string root = getRoot();
+
+            string frompath = Path.Combine(root, path);
+            string topath = Path.Combine(root, Path.GetDirectoryName(path), newname);
+
+            string fullfrompath = Server.MapPath(Path.Combine(root, path));
+            string fulltopath = Server.MapPath(Path.Combine(root, Path.GetDirectoryName(path), newname));
+
+            try
+            {
+                if (Directory.Exists(fullfrompath))
+                {
+                    // we're renaming a folder
+                    Directory.Move(fullfrompath, fulltopath);
+                    string msg = $"Folder renamed from {frompath} to {topath}.";
+                    resp = new JsonResponse(true, msg, topath);
+                }
+                else
+                {
+                    // we're renaming a file 
+                    System.IO.File.Move(fullfrompath, fulltopath);
+                    string msg = $"File renamed from {frompath} to {topath}.";
+                    resp = new JsonResponse(true, msg, topath);
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Error renaming: {frompath} to {newname}.";
+                resp = new JsonResponse(false, msg, null);
+            }
+
+            return Json(resp);
+        }
+
 
         // getFullDirectoryTree
         //

@@ -1,11 +1,15 @@
 ﻿
 :root {
     --headercolor: darkblue;
-    --current: lightyellow;
+    --currentfilecolor: yellow;
+    --currentfilecolortext: black;
+    --currentfoldercolor: brown;
+    --currentfoldercolortext: white;
     --button: #7a0c6b;
     --buttonText: white;
     --titlebackground: #7a0c6b;
     --marginbottom: .4rem;
+    --foldercolor: invert(60%) sepia(32%) saturate(3313%) hue-rotate(20deg) brightness(104%) contrast(101%);
     --redfilter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
     --bluefilter: invert(8%) sepia(100%) saturate(6341%) hue-rotate(247deg) brightness(90%) contrast(145%);
 }
@@ -83,9 +87,25 @@ button {
     font-weight: normal;
 }
 
-.current {
-    background-color: var(--current);
-    font-weight: bold;
+.fileUL
+{
+    border:0px solid blue;
+}
+.folderUL {
+    border: 0px solid red;
+}
+
+.file.current {
+    background-color: var(--currentfilecolor);
+    color: var(--currentfilecolortext);
+    
+    padding: 4px;
+}
+.folder.current {
+    background-color: black; /* var(--currentfoldercolor); */
+    color: white; /* var(--currentfoldercolortext); */
+    
+    padding: 4px;
 }
 
 .dragEnter {
@@ -154,7 +174,7 @@ li {
         margin-right: 10px;
         top: 3px;
         position: relative;
-        filter: invert(60%) sepia(32%) saturate(3313%) hue-rotate(20deg) brightness(104%) contrast(101%);
+        filter: var(--foldercolor);
     }
 
 .fileUL li {

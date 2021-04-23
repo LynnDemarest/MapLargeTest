@@ -90,6 +90,7 @@ function dragDelete(e) {
 
     e.currentTarget.classList.remove("trashiconhover");
     e.currentTarget.classList.add("trashicon");
+
     model.viewModel.deleteFile(frompath, bForced);
 }
 

@@ -20,7 +20,7 @@ function FileManModel(searchPhrase, rootFolder) {
 
     // This is the current root folder name or "root" for the beginning "" folder.
     //
-    self.currentFolder = ko.computed(function () {
+    self.computedFolder = ko.computed(function () {
         if (self.rootFolder() == "")
             return "root";
         else
@@ -29,6 +29,8 @@ function FileManModel(searchPhrase, rootFolder) {
 
     self.currentFile = ko.observable("");
     self.currentFileContents = ko.observable("");  // displayed
+
+    //self.currentFolder = ko.observable("Code");
 
     self.folders = ko.observableArray();
     self.files = ko.observableArray();
@@ -40,10 +42,52 @@ function FileManModel(searchPhrase, rootFolder) {
     self.numberOfFiles = ko.observable(0);
     self.statusMessage = ko.observable("");
 
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    self.findPreviousFilePath = (currentFilePath) => {
+        var tree = self.DirectoryTree()
+        
+    }
+
+
+    self.rename = (path, newname) => {
+        console.log(`New name is ${newname} for ${path}`);
+
+
+        $.ajax({
+            url: '/default/rename',
+            method: "POST",
+            data: { path, newname }
+        }).done(function (res) {
+            //var success = res.success == "true";
+            //var msg = res.msg;
+            var [success, msg, data] = self.getParams(res);
+
+            consolelog(msg);
+            self.UpdateStatusMessage(msg);
+
+            if (success) {
+                self.rootFolder(data);     // change the root folder for getFolderData
+                self.refreshBothLists();
+            }
+        }).fail(function (err) {
+            self.UpdateStatusMessage(`Error renaming item : ${err.statusText}`);
+        });
+
+    }
+
 
     self.isCurrentFile = (data) => {
         consolelog("isCurrentFile: " + data);
         return data == self.currentFile();
+    };
+
+    self.isCurrentFolder = (data) => {
+        var r = self.rootFolder();
+
+        console.log(r + " " + data);
+
+        return (r == data);
     };
 
     self.pathIsCollapsed = (path) => {
@@ -64,13 +108,13 @@ function FileManModel(searchPhrase, rootFolder) {
     // This is used by the folder panel, not the tree view.
     //
     self.selectFolder = function (folder) {
-        var newpath = self.rootFolder();
-        if (newpath != "") {
-            newpath += "\\";   // Note: If we add this to the folder, Path.Combine will treat it like an absolute path. 
-        }
-        newpath += folder;
+        //var newpath = self.rootFolder();
+        //if (newpath != "") {
+        //    newpath += "\\";   // Note: If we add this to the folder, Path.Combine will treat it like an absolute path. 
+        //}
+        //newpath += folder;
 
-        self.rootFolder(newpath);
+        self.rootFolder(folder);
         self.getFolderData();
     }
 
@@ -78,6 +122,7 @@ function FileManModel(searchPhrase, rootFolder) {
     // Used by the tree view, each node of which is a object containing files[], folders[] and a path.
     //
     self.selectFolderObject = function (folder) {
+        
         self.rootFolder(folder.path);
         self.getFolderData();  // Note: No need to refresh tree view
     }
@@ -258,10 +303,12 @@ function FileManModel(searchPhrase, rootFolder) {
     // TODO: needs work
     //
     self.filenameIsOKToDisplay = (filename) => {
-        var pieces = filename.split(".");
-        var ext = pieces[pieces.length - 1];
-        var badexts = ['exe', 'png', 'jpg', 'gif', 'dat', 'bak', 'zip', 'rar', 'pdf']; // TODO: Get these from server?
-        return !badexts.includes(ext);
+        if (filename != undefined) {
+            var pieces = filename.split(".");
+            var ext = pieces[pieces.length - 1];
+            var badexts = ['exe', 'png', 'jpg', 'gif', 'dat', 'bak', 'zip', 'rar', 'pdf']; // TODO: Get these from server?
+            return !badexts.includes(ext);
+        } return false;
     }
 
     // copyToClipboard
@@ -339,8 +386,9 @@ function FileManModel(searchPhrase, rootFolder) {
                 self.UpdateStatusMessage(res);
 
                 self.goUp();
-                //self.getFolderData();
-                self.refreshBothLists();
+                
+                //self.refreshBothLists();  // goUp already does this. 
+
                 // TODO: Only do this if the folder just deleted is involved in the search listing
                 // 
                 self.doSearch();
@@ -369,7 +417,7 @@ function FileManModel(searchPhrase, rootFolder) {
             //debugger;
             consolelog(res);
             self.UpdateStatusMessage(res);
-            //self.getFolderData();
+            
             self.refreshBothLists();
             // TODO: Only do this if the file just deleted is in the search listing
             // 
@@ -401,6 +449,7 @@ function FileManModel(searchPhrase, rootFolder) {
         });
     }
 
+    // TODO: change name to deleteFileOrDirectory
     self.deleteFile = function (file, bForced) {
         var filepath;
         filepath = file;
@@ -414,7 +463,12 @@ function FileManModel(searchPhrase, rootFolder) {
         if (file == self.currentFile()) {
             self.currentFile("");
             self.currentFileContents("");
+        } else {
+            if (file == self.rootFolder()) {
+                self.rootFolder("");
+            }
         }
+        
 
         $.ajax({
             url: '/default/DeleteFileOrDirectory',
@@ -454,8 +508,6 @@ function FileManModel(searchPhrase, rootFolder) {
         self.rootFolder(newpath);
 
         //alert(newpath);
-        //self.getFolderData();
-        //self.getDirectoryTree();
         self.refreshBothLists();
         //if (self.rootFolder() != "") {
         //    self.UpdateStatusMessage(`Current folder: New root path is ${self.rootFolder()}`)
@@ -578,6 +630,18 @@ function FileManModel(searchPhrase, rootFolder) {
                 });
             }
 
+
+            //
+            //
+            //
+            //var data = self.DirectoryTree();
+            //var foundnode = { path: "", folders: [], files: [] };
+            //var node = findFolder(data, "Code\\js", foundnode);
+            
+            //console.log(`${node.path} has ${node.folders.length} folders and ${node.files.length} files.`);
+
+            //var foldernode = findNextFolder(node);
+
         }).fail(function (err) {
             self.UpdateStatusMessage('Error: ' + err);
         });
@@ -594,7 +658,9 @@ function FileManModel(searchPhrase, rootFolder) {
         var path = self.rootFolder();
 
         await $.ajax({
-            url: '/default/getFolder?p=' + path
+            url: '/default/getFolder',
+            method: "POST",
+            data: { p : path }
         }).done(function (res) {
             if (path == "") path = "root";
             self.UpdateStatusMessage(`Current Folder (${path}) refreshed.`);
@@ -618,7 +684,7 @@ function FileManModel(searchPhrase, rootFolder) {
             // 
             updateDragClassesAndHandlers();
         }).fail(function (err) {
-            self.UpdateStatusMessage('Error: ' + err);
+            self.UpdateStatusMessage('Error: ' + JSON.stringify(err));
         });
     };
 

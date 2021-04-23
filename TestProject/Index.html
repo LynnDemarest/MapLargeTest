@@ -20,7 +20,7 @@
     <script id="current-folder" type="text/html">
         <div class="divCurrentFolder">
             <div class="currentfolder">
-                <div id="currentFolder" data-bind="text: currentFolder"></div>
+                <div id="currentFolder" data-bind="text: computedFolder"></div>
 
                 <div class="divupfolder" data-bind="if: canGoUp()">
                     <img src="img/upfolder.svg" alt="Go up one level." title="Go up one level."
@@ -34,7 +34,7 @@
         <div id="divSearchResults" class="divSearchResults">
             <div class="header" onclick="toggleNext(this);">
                 Search : (<span data-bind="text: numberOfSearchResults"></span>)
-                <span id="searchfolder" data-bind="text: currentFolder()"></span>
+                <span id="searchfolder" data-bind="text: computedFolder()"></span>
             </div>
             <div class="divSearchBody">
                 <div class="searchform">
@@ -78,7 +78,7 @@
     <script id="upload" type="text/html">
         <div class="divUploadFiles">
             <div class="header" onclick="toggleNext(this);">
-                Upload Files to <span data-bind="text: currentFolder"></span>
+                Upload Files to <span data-bind="text: computedFolder"></span>
             </div>
             <div class="uploadPanel">
                 <input type="file" id="FileUpload1" multiple />
@@ -117,7 +117,7 @@
             <div class="header" onclick="toggleNext(this);">
                 <div style="display:flex;justify-content:space-between;">
                     <div>
-                        Folders in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFolders"></span>)
+                        Folders in <span data-bind="text: computedFolder"></span> : (<span data-bind="text: numberOfFolders"></span>)
                     </div>
                     <div>
                         <input type="text" id="newfolder" data-bind="value: newFolderName" onclick="event.stopPropagation()" />
@@ -139,7 +139,7 @@
         <div class="divFiles">
             <div class="header" onclick="toggleNext(this);" style="display:flex;justify-content:space-between;">
                 <div>
-                    Files in <span data-bind="text: currentFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
+                    Files in <span data-bind="text: computedFolder"></span> : (<span data-bind="text: numberOfFiles"></span>)
                 </div>
                 <div data-bind="if: currentFolderCanBeDeleted()">
                     <button data-bind="click: deleteFolder" onclick="event.stopPropagation()">Delete Folder</button>
@@ -150,7 +150,7 @@
                     <div class="linenumber" data-bind="text: $index() + 1 + '. '"></div>
                     <img src="img/delete.svg" class="clickable deleteicon" title="Delete file"
                          data-bind="text: $data,
-                                            click: function() {model.viewModel.deleteFile($data, false);}" />
+                                    click: function() {model.viewModel.deleteFile($data, false);}" />
                     <img src="img/download.svg" class="clickable downloadicon" title="Download file"
                          data-bind="click: function() {model.viewModel.downloadFile($data);}" />
                     <li class="clickable file" draggable="true"
@@ -166,6 +166,7 @@
     </script>
 
     <!-- main view with event handlers -->
+    <script src="js/DirectoryTree.js"></script>
     <script src="js/FileMan.js"></script>
     <script src="js/draganddrop.js"></script>
 
@@ -185,11 +186,14 @@
 <body>
 
     <div id="knockoutContainer">
-        <!-- This shows the cached collapsed folders, for debugging 
+        <!-- This shows the cached collapsed folders, for debugging
         <div data-bind="foreach: collapsedFolders">
             <span data-bind="text: $data"></span>
         </div>
         -->
+        <span data-bind="text: currentFile">
+
+        </span>
         <h1>SPA File Manager</h1>
         <div data-bind="template: { name: 'current-folder', data: model.viewModel } "></div>
         <div class="flexcontainer">
@@ -214,25 +218,31 @@
                         </div>
 
                     </div>
-                    <div class="divDirectoryTreeContainer">
+                    <div class="divDirectoryTreeContainer" id="divDirectoryTreeContainer">
                         <!-- DirectoryTree template -->
                         <script id="treeTemplate" type="text/html">
-                            <ul class="folderUL">
-                                <!--<div data-bind="if: $data.path !== undefined;">-->
+                            <ul class="folderUL" data-bind="attr: { id: $data.path }">
+                                <!--<div data-bind="if: $data.path !== undefined;">
+                                $root.selectFolderObject
+                                                            ondblclick="makeEditable(this);
+                                                                ,
+                                                                                css: $root.isCurrentFolder($data.path) ? 'current' : '';
+                                -->
                                 <div style="display:flex;">
                                     <li class="folder clickable" draggable="true"
                                         data-bind="text: $root.getFolderNameFromPath($data.path),
-                                         click: $root.selectFolderObject,
-                                         attr: {id: ('folder_' + $data.path), fullpath: $data.path  }">
+                                                   click:  $root.selectFolderObject,
+                                                   attr: {id: ('folder_' + $data.path), fullpath: $data.path }">
                                     </li>
                                     <div onclick="toggleChildren(this);" class="up"
-                                         data-bind="attr: { fullpath: $data.path }"></div>
+                                         data-bind="attr: { fullpath: $data.path }">
+                                    </div>
                                 </div>
                                 <!--</div>-->
 
-                                <ul data-bind="foreach: $data.files" class="fileUL">
+                                <ul data-bind="foreach: $data.files, attr: { id: $data }" class="fileUL">
 
-                                    <li class="clickable file" draggable="true"
+                                    <li class="file clickable" draggable="true"
                                         data-bind="text: $root.getFileNameFromPath($data),
                                             click: $root.selectFile,
                                             attr: {id: 'file_' + $index(), fullpath: $data, title: $data },
@@ -241,7 +251,7 @@
                                 </ul>
                                 <!-- ko template: { name: 'treeTemplate', foreach: $data.folders } -->
                                 <!-- /ko -->
-                                </li>
+                                <!--/li ----------------------- -->
                             </ul>
                         </script>
                         <!-- -->
@@ -270,6 +280,146 @@
         </footer>
     </div>
     <script>
+
+        //function clickFolder(folder, obj) {
+        //    //alert(path);
+        //    model.viewModel.selectFolderObject(obj);
+        //}
+
+        $(document).ready(function () {
+            if (false) {
+                var tree = document.getElementById("divDirectoryTreeContainer");
+                document.addEventListener("keydown", (e) => {
+                    e.preventDefault();
+                    //console.log("key down : " + e.code);
+                    if (e.code == "ArrowDown") {
+                        // find the next "draggable" element and make it current
+                        //
+                        var currentElement = $(".current")[0];
+                        var currentFullPath = currentElement.attributes.fullpath.nodeValue;
+                        var nextElement = $(currentElement).next()[0];
+                        if (nextElement != undefined) {
+                            // we're not at the last LI yet
+                            var newFullPath = nextElement.attributes.fullpath.nodeValue;
+                        } else {
+                            // last LI, so go to the next UL ?
+                            // prev prev next
+                            //
+                            //nextElement = $(currentElement).prev().prev().next()[0];
+                            //model.viewModel.currentFolder(nextElement.attributes.fullpath.nodeValue);
+                            //model.viewModel.currentFile("");
+                            try {
+                                newFullPath = $(currentElement).parent().next().children().last().children().first()[0].attributes.fullpath.nodeValue;
+                            } catch (err) {
+                                newFullPath = $(currentElement).parent().parent().next().children(".fileUL").children().first()[0]?.attributes.fullpath.nodeValue;
+                                if (newFullPath == undefined) {
+                                    console.log(err);
+                                    newFullPath = $(currentElement).parent().parent().parent().parent().next().children(".fileUL").children().first()[0]?.attributes.fullpath.nodeValue
+                                    if (newFullPath == undefined) {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        if (newFullPath != "") {
+                            model.viewModel.currentFile(newFullPath);
+                            model.viewModel.getCurrentFileContents();
+                        }
+
+                        // find element below currentElement that has "clickable" class
+                        //
+                        //var nextElement = $(currentElement[0]).next(".clickable");
+                        //currentElement.removeClass("current");
+                        //nextElement.addClass("current");
+                        //alert(nextElement);
+                    } else {
+                        if (e.code == "ArrowUp") {
+                            var currentElement = $(".file.current")[0];
+                            var currentFullPath = currentElement.attributes.fullpath.nodeValue; // ex: "Code\MapLarge File Manager\TestProject\Global.asax"
+
+                            var prevElement = $(currentElement).prev()[0];           // previous sibling, will not be found if we're at the top LI element
+                            var prevFullPath;
+                            if (prevElement != undefined) {
+                                prevFullPath = prevElement.attributes.fullpath.nodeValue;
+                            } else {
+                                // we're on the topmost LI, so find the bottom of the next highest folder
+                                //
+                                // prevFullPath = model.viewModel.findPreviousFilePath(currentFullPath);
+                                // prevElement = $(currentElement).parent().prev(".file.current");
+                                //var prevUL = $(currentElement).closest(".fileUL")[0].prev(); //closest(".fileUL").last("li")[0];
+                                // $(currentElement).parent().parent().prev().children()
+                                // var prevUL = $(currentElement).parent(".fileUL").parent(".folderUL").prev(".folderUL").children(".fileUL");
+
+                                // up one folder level
+                                var prevFile = $(currentElement).parent().parent().prev().children().last()[0];
+                                if (prevFile.attributes.fullpath == undefined) {
+                                    // up one folder on same level
+                                    prevFile = $(currentElement).closest(".folderUL").prev().children().last().children().last()[0];
+                                }
+                                if (prevFile.attributes != undefined)
+                                    prevFullPath = prevFile.attributes.fullpath.nodeValue;
+                                else
+                                    prevFullPath = "";
+
+                                //model.viewModel.currentFileContents(JSON.stringify(prevUL));
+                            }
+                            if (prevFullPath != "") {
+                                model.viewModel.currentFile(prevFullPath);
+                                model.viewModel.getCurrentFileContents();
+                            }
+
+                            //    if (prevElement.length == 0) {
+                            //        // prevElement = $(currentElement).parent().prev(".clickable");
+                            //        var pieces = currentFullPath.slice("\\");
+                            //        pieces = pieces.slice(0, pieces.length - 2);
+                            //        var currentFolder = pieces.join("\\");
+                            //        model.viewModel.currentFolder(currentFolder);
+                            //    } else {
+                            //        //$(currentElement).removeClass("current");
+                            //        var fullfilepath = $(prevElement).attributes.fullpath.nodeValue;
+                            //        model.viewModel.currentFile(fullfilepath);
+                            //    }
+                        }
+                    }
+                });
+                //
+                // .prev   -- previous sibling
+                // .next   -- next sibling
+                // .parent -- parent (enclosing element)
+                // .
+            }
+
+        });
+
+
+
+        var inPlace = { bEditing: false };
+        function makeEditable(obj) {
+            if (obj.id == undefined) obj.id = "asdfdfa9sdf9adskasdfk";
+            //alert("makeEditable");
+            if (!inPlace.bEditing) {
+                inPlace.originalPath = obj.attributes.fullpath.textContent;
+                inPlace.bEditing = true;
+                inPlace.originalStyle = obj.style;
+
+                obj.style.padding = "10px;";
+                obj.style.border = "1px solid black";
+
+                obj.contentEditable = true;
+                obj.focus();
+
+                obj.addEventListener("blur", (e) => {
+                    var o = e.target;
+                    o.style = inPlace.originalStyle;
+                    o.removeEventListener("blur", this);
+                    o.contentEditable = false;
+                    inPlace.bEditing = false;
+
+                    //console.log(`New name is ${o.textContent} for ${inPlace.originalPath}`)
+                    model.viewModel.rename(o.attributes.fullpath.textContent, o.textContent);
+                });
+            }
+        }
 
         const bLogging = false;
 
@@ -407,8 +557,7 @@
         }
 
 
-        $(document).ready(function () {
-        });
+
 
         // toggleNext
         // Hides and shows the next element when the one before it (obj) is clicked.

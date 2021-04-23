@@ -99,6 +99,7 @@
     <Content Include="img\upfolder.svg" />
     <Content Include="Index.html" />
     <Content Include="js\components\CurrentFolder\current-folder.js" />
+    <Content Include="js\DirectoryTree.js" />
     <Content Include="js\draganddrop.js" />
     <Content Include="js\FileMan.js" />
     <Content Include="Web.config" />
