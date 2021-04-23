@@ -187,27 +187,26 @@
 
     <div id="knockoutContainer">
         <!-- This shows the cached collapsed folders, for debugging
-        <div data-bind="foreach: collapsedFolders">
-            <span data-bind="text: $data"></span>
-        </div>
-        -->
+    <div data-bind="foreach: collapsedFolders">
+        <span data-bind="text: $data"></span>
+    </div>
         <span data-bind="text: currentFile">
-
+    -->
         </span>
         <h1>SPA File Manager</h1>
         <div data-bind="template: { name: 'current-folder', data: model.viewModel } "></div>
         <div class="flexcontainer">
             <div class="leftPanel">
                 <!-- Note: Can't "template-ize" this block because it already uses a template?
-                    TODO: sometimes when dragging folders to the trashcan the panel collapses.
-                -->
+                TODO: sometimes when dragging folders to the trashcan the panel collapses.
+            -->
                 <div class="divDirectoryTree">
                     <div id="treeviewheader" class="header" onclick="toggleNext(this);" style="display:flex;justify-content:space-between;">
 
                         <div>
                             Tree View
                             <!--span data-bind="text: DirectoryTree().path"></span>
-                            <span data-bind="if: DirectoryTree().path === ''">root</span-->
+                        <span data-bind="if: DirectoryTree().path === ''">root</span-->
                             <br />
                             <span class="tinytextwhite">Drag and drop files and folders to move them.<br />Hold down Ctrl key to copy.</span>
                         </div>
@@ -223,11 +222,11 @@
                         <script id="treeTemplate" type="text/html">
                             <ul class="folderUL" data-bind="attr: { id: $data.path }">
                                 <!--<div data-bind="if: $data.path !== undefined;">
-                                $root.selectFolderObject
-                                                            ondblclick="makeEditable(this);
-                                                                ,
-                                                                                css: $root.isCurrentFolder($data.path) ? 'current' : '';
-                                -->
+                            $root.selectFolderObject
+                                                        ondblclick="makeEditable(this);
+                                                            ,
+                                                                            css: $root.isCurrentFolder($data.path) ? 'current' : '';
+                            -->
                                 <div style="display:flex;">
                                     <li class="folder clickable" draggable="true"
                                         data-bind="text: $root.getFolderNameFromPath($data.path),
