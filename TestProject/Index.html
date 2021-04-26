@@ -588,6 +588,7 @@
             var o = $(obj).parent();
             var uls = o.nextAll("ul");
             $.each(uls, (idx, ul) => {
+                console.log("toggleChildren loop: " + JSON.stringify(ul));
                 $(ul).slideToggle(500, () => {
                     if (bCollapsedSet == false) {
                         bCollapsedSet = true;

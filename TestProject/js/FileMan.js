@@ -8,7 +8,15 @@ function FileManModel(searchPhrase, rootFolder) {
     var self = this;
 
     if (searchPhrase == undefined) searchPhrase = "";
+
+    // rootFolder is used to display the folders and files panels
+    // It's the second piece in the URL after #:  #searchPhrase&rootFolder
+    //
     if (rootFolder == undefined) rootFolder = "";
+
+    //
+    // observables
+    //
 
     self.rootFolder = ko.observable(rootFolder);
     self.searchPhrase = ko.observable(searchPhrase);
@@ -598,52 +606,52 @@ function FileManModel(searchPhrase, rootFolder) {
     // This object is displayed by a recursive knockoutJS template.
     // The tree always starts at the root folder, but this is changeable.
     //
-    self.getDirectoryTree = async function () {
+    //self.getDirectoryTree = async function () {
 
-        var path = "";
-        await $.ajax({
-            url: '/default/getFullDirectoryTree',
-            method: 'POST',
-            data: { 'rootpath': path }
-        }).done(function (res) {
-            // To view the json data, uncomment this and run the program.
-            // self.currentFileContents(JSON.stringify(res, null, '\t'));
+    //    var path = "";
+    //    await $.ajax({
+    //        url: '/default/getFullDirectoryTree',
+    //        method: 'POST',
+    //        data: { 'rootpath': path }
+    //    }).done(function (res) {
+    //        // To view the json data, uncomment this and run the program.
+    //        // self.currentFileContents(JSON.stringify(res, null, '\t'));
 
-            self.DirectoryTree(res);  // knockoutJS template works its magic 
+    //        self.DirectoryTree(res);  // knockoutJS template works its magic 
 
-            //
-            // collapse any paths in collapseFolders array
-            //
-            if (self.collapsedFolders().length > 0) {
-                $.each($(".up"), (idx, toggleIcon) => {
+    //        //
+    //        // collapse any paths in collapseFolders array
+    //        //
+    //        if (self.collapsedFolders().length > 0) {
+    //            $.each($(".up"), (idx, toggleIcon) => {
 
-                    var fullpath = $(toggleIcon).attr("fullpath");
-                    if (self.pathIsCollapsed(fullpath)) {
-                        // This makes the UI jump because folders are collapsed in turn. 
-                        //val.click();
-                        $(toggleIcon).parent().next("UL").css("display", "none");
-                        $(toggleIcon).addClass("down");
-                        $(toggleIcon).removeClass("up");
-                    }
-                });
-            }
+    //                var fullpath = $(toggleIcon).attr("fullpath");
+    //                if (self.pathIsCollapsed(fullpath)) {
+    //                    // This makes the UI jump because folders are collapsed in turn. 
+    //                    //val.click();
+    //                    $(toggleIcon).parent().next("UL").css("display", "none");
+    //                    $(toggleIcon).addClass("down");
+    //                    $(toggleIcon).removeClass("up");
+    //                }
+    //            });
+    //        }
 
 
-            //
-            // Temp code to test DirectoryTree.js 
-            //
-            //var data = self.DirectoryTree();
-            //var foundnode = { path: "", folders: [], files: [] };
-            //var node = findFolder(data, "Code\\js", foundnode);
+    //        //
+    //        // Temp code to test DirectoryTree.js 
+    //        //
+    //        //var data = self.DirectoryTree();
+    //        //var foundnode = { path: "", folders: [], files: [] };
+    //        //var node = findFolder(data, "Code\\js", foundnode);
 
-            //console.log(`${node.path} has ${node.folders.length} folders and ${node.files.length} files.`);
+    //        //console.log(`${node.path} has ${node.folders.length} folders and ${node.files.length} files.`);
 
-            //var foldernode = findNextFolder(node);
+    //        //var foldernode = findNextFolder(node);
 
-        }).fail(function (err) {
-            self.UpdateStatusMessage('Error: ' + err);
-        });
-    }
+    //    }).fail(function (err) {
+    //        self.UpdateStatusMessage('Error: ' + err);
+    //    });
+    //}
 
 
 
