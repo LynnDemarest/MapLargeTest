@@ -1,4 +1,12 @@
-﻿
+﻿//
+// DirectoryTree.js 
+//
+//
+// Functions to manipulate the directory tree object, 
+
+
+
+
 //
 // node may be either a folder or file node. 
 // If it's a folder node, return the first file in the folder. If there are no files, recurse to the next folder and continue.

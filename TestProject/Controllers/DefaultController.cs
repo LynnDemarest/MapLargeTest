@@ -11,27 +11,9 @@ using System.Configuration;
 namespace TestProject.Controllers
 {
 
-    class JsonResponse
-    {
-        public bool success { get; set; }
-        public string msg { get; set; }
-        public object data { get; set; }
-
-        public JsonResponse(bool success, string msg, object data)
-        {
-            this.success = success;
-            this.msg = msg;
-            this.data = data;
-        }
-    }
-    
     public class DefaultController : Controller
     {
-        // GET: Default
-        public ActionResult Test()
-        {
-            return Content("This is the API at /Default/[Action]");
-        }
+        
 
         /*
          *  Helper functions
@@ -43,23 +25,24 @@ namespace TestProject.Controllers
         //
         private Dictionary<string, string> MakeResponse(string success, string msg)
         {
-            Dictionary<string, string> dict = new Dictionary<string, string>();
+            //Dictionary<string, string> dict = new Dictionary<string, string>();
 
-            dict.Add("success", success);
-            dict.Add("msg", msg);
+            //dict.Add("success", success);
+            //dict.Add("msg", msg);
 
-            return dict;
-
+            //return dict;
+            return HelperFunctions.MakeResponse(success, msg);
         }
 
         private string getRoot()
         {
-            return ConfigurationManager.AppSettings["rootFolder"];
+            //return ConfigurationManager.AppSettings["rootFolder"];
+            return HelperFunctions.getRoot();
         }
 
         // RemoveRootFolder
         // Removes the server-mapped root folder prefix from the path.
-        //
+        // Not moved to HelperFunctions because it uses Server.MapPath.
         private string RemoveRootFolder(string path)
         {
             string rootFolder = Server.MapPath(getRoot());
@@ -192,6 +175,7 @@ namespace TestProject.Controllers
         [HttpPost]
         public JsonResult getFullDirectoryTree(string rootpath)
         {
+            if (rootpath == null) rootpath = "";
             string newpath = Server.MapPath(Path.Combine(getRoot(), rootpath));
 
             DirectoryInfo di = new DirectoryInfo(newpath);

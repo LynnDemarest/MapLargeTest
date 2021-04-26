@@ -16,10 +16,10 @@ function FileManModel(searchPhrase, rootFolder) {
     self.newFolderName = ko.observable("");
 
     self.DirectoryTree = ko.observableArray();
-    self.collapsedFolders = ko.observableArray();
+    self.collapsedFolders = ko.observableArray([]);
 
     // This is the current root folder name or "root" for the beginning "" folder.
-    //
+    // Used to display rootFolder
     self.computedFolder = ko.computed(function () {
         if (self.rootFolder() == "")
             return "root";
@@ -28,12 +28,12 @@ function FileManModel(searchPhrase, rootFolder) {
     }, this);
 
     self.currentFile = ko.observable("");
-    self.currentFileContents = ko.observable("");  // displayed
+    self.currentFileContents = ko.observable("");  // displayed contents 
 
     //self.currentFolder = ko.observable("Code");
 
-    self.folders = ko.observableArray();
-    self.files = ko.observableArray();
+    self.folders = ko.observableArray();  // folders panel: list of folders in current folder
+    self.files = ko.observableArray();    // files panel: list of files in current folder 
 
     self.searchResults = ko.observableArray();
     self.numberOfSearchResults = ko.observable(0);
@@ -43,12 +43,42 @@ function FileManModel(searchPhrase, rootFolder) {
     self.statusMessage = ko.observable("");
 
     //////////////////////////////////////////////////////////////////////////////////////
-
+    // not done
     self.findPreviousFilePath = (currentFilePath) => {
         var tree = self.DirectoryTree()
-        
+
     }
 
+    // showFolderUL
+    // Returns true or false depending on whether the filepath is collapsed or not.
+    // All child .FolderUL elements get collapsed when its parent does. 
+    // 
+    self.showFolderUL = (filepath) => {
+        if (filepath == undefined) filepath = "";
+        var path = self.getFolderNameFromPath(filepath, true);
+        return !self.pathIsCollapsed(path);
+    }
+    // showFileUL
+    // Returns true or false depending on whether the first file's path is collapsed.
+    //
+    //
+    self.showFileUL = (filepatharr) => {
+        var filepath = "";
+        if (filepatharr != undefined && filepatharr.length > 0) filepath = filepatharr[0];
+        var path = self.getFolderNameFromPath(filepath, true);
+        return !self.pathIsCollapsed(path);
+    }
+    // getUpDownClass
+    // Returns class "up" or "down" depending on the collapsed state of the filepath. 
+    //
+    //
+    self.getUpDownClass = (filepath) => {
+        if (filepath == undefined) filepath = "";
+        if (self.pathIsCollapsed(filepath))
+            return "down";
+        else
+            return "up";
+    }
 
     self.rename = (path, newname) => {
         console.log(`New name is ${newname} for ${path}`);
@@ -91,7 +121,10 @@ function FileManModel(searchPhrase, rootFolder) {
     };
 
     self.pathIsCollapsed = (path) => {
-        return (self.collapsedFolders.indexOf(path) >= 0);
+        if (path == "")
+            return false;
+        else
+            return (self.collapsedFolders.indexOf(path) >= 0);
     }
     self.removeFromCollapsed = (path) => {
         self.collapsedFolders.remove(path);
@@ -104,16 +137,10 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
     // selectFolder
-    // User clicks on folder name. The name of the folder is passed in automatically by knockout. 
+    // User clicks on folder name. 
     // This is used by the folder panel, not the tree view.
     //
     self.selectFolder = function (folder) {
-        //var newpath = self.rootFolder();
-        //if (newpath != "") {
-        //    newpath += "\\";   // Note: If we add this to the folder, Path.Combine will treat it like an absolute path. 
-        //}
-        //newpath += folder;
-
         self.rootFolder(folder);
         self.getFolderData();
     }
@@ -122,9 +149,8 @@ function FileManModel(searchPhrase, rootFolder) {
     // Used by the tree view, each node of which is a object containing files[], folders[] and a path.
     //
     self.selectFolderObject = function (folder) {
-        
         self.rootFolder(folder.path);
-        self.getFolderData();  // Note: No need to refresh tree view
+        self.getFolderData();              // Note: No need to refresh tree view
     }
 
     // canGoUp
@@ -149,7 +175,7 @@ function FileManModel(searchPhrase, rootFolder) {
     self.getCurrentFileContents = async () => {
 
         //
-        // if currentFile were an actual observable..
+        // if currentFile were an actual observable...
         //
         //self.currentFile.subscribe(
         //    p => alert("Subscribed to currentFile: " + p),
@@ -163,32 +189,38 @@ function FileManModel(searchPhrase, rootFolder) {
             consolelog('Loading : ' + path);
 
             // https://api.jquery.com/jquery.ajax/
+            var xhr = await self.getFile(path);
 
-            await self.getFile(path);
-
-            //    await $.ajax({
-            //        url: '/default/GetFile',
-            //        method: "POST",
-            //        data: { 'filepath': path }
-            //    }).done(function (res) {
-            //        var [success, msg, data] = self.getParams(res);
-
-            //        if (success) self.currentFileContents(data);
-
-            //        self.UpdateStatusMessage(msg);
-            //        consolelog(msg);
-
-            //    }).fail(function (err) {
-            //            self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
-            //    });
         } else {
             self.UpdateStatusMessage("Can't display that kind of file. Try downloading it.");
         }
     }
+    // downloadFile
+    // TODO: Add to tree view. Add delete, too. 
+    //
+    self.downloadFile = async (filename) => {
+        var path = filename;
 
+        // https://api.jquery.com/jquery.ajax/
+        //
+        var xhr = await self.getFile(filename).then((res) => {
+            var [success, msg, data] = self.getParams(res);
+
+            self.UpdateStatusMessage(msg);
+            if (success) {
+                var contentType = self.GetContentTypeForFilename(path);
+                download(data, filename, contentType);
+            }
+        });
+
+    }
+
+    // getFile
+    // 
+    // Called by : getCurrentFileContents, downloadFile (above)  
+    //
     self.getFile = (path) => {
-        return $.ajax({
-            url: '/default/GetFile',
+        return $.ajax('/default/GetFile', {
             method: "POST",
             data: { 'filepath': path }
         }).done(function (res) {
@@ -201,10 +233,11 @@ function FileManModel(searchPhrase, rootFolder) {
 
         }).fail(function (err) {
             self.UpdateStatusMessage(`${path} could not be loaded. Error: ${err.responseText}`);
+        }).always(() => {
+            // alert("always fired");
         });
 
     }
-
 
     // getParams
     // Picks success, msg, and data from an incoming ajax response, returns it as an array that can be deconstructed.
@@ -231,11 +264,12 @@ function FileManModel(searchPhrase, rootFolder) {
             path = root + "\\" + self.newFolderName();
         } else path = self.newFolderName();
 
-        $.ajax({
-            url: '/default/AddFolder',
-            method: "POST",
-            data: { 'newfolderpath': path }
-        }).done(function (res) {
+        var xhr = $.ajax('/default/AddFolder',
+            {
+                method: "POST",
+                data: { 'newfolderpath': path }
+            }
+        ).done(function (res) {
             //var success = res.success == "true";
             //var msg = res.msg;
             var [success, msg, data] = self.getParams(res);
@@ -246,51 +280,13 @@ function FileManModel(searchPhrase, rootFolder) {
             if (success) {
                 self.refreshBothLists();
             }
-            else {
-                self.UpdateStatusMessage(msg);
-            }
+
         }).fail(function (err) {
             self.UpdateStatusMessage(`Error adding folder : ${err.statusText}`);
         });
 
     }
 
-    // downloadFile
-    // TODO: Add to tree view. Add delete, too. 
-    //
-    self.downloadFile = async (filename) => {
-        var path = filename;
-        //var rootFolder = self.rootFolder();
-
-        // https://api.jquery.com/jquery.ajax/
-        //alert(filename);
-        //debugger;
-        //
-        await self.getFile(filename).then((res) => {
-            var [success, msg, data] = self.getParams(res);
-
-            self.UpdateStatusMessage(msg);
-            if (success) {
-                var contentType = self.GetContentTypeForFilename(path);
-                download(data, filename, contentType);
-            }
-        });
-
-        //await $.ajax({
-        //    url: '/default/GetFile',
-        //    method: "POST",
-        //    data: { 'filepath': path }
-        //}).done(function (res) {
-        //    //self.UpdateStatusMessage('Done loading : ' + path);
-        //    var contentType = self.GetContentTypeForFilename(path);
-        //    //
-        //    // in index.html
-        //    //
-        //    download(res, filename, contentType);
-        //}).fail(function (err) {
-        //    self.UpdateStatusMessage('Error: ' + err.statusText);
-        //});
-    }
 
     // GetContentTypeForFilename
     //
@@ -340,25 +336,6 @@ function FileManModel(searchPhrase, rootFolder) {
 
     }
 
-    // CalcPath
-    // Only add rootFolder prefix if the 
-    //
-    //self.CalcPath = (file) => {
-    //    var path;
-    //    if (file.indexOf("\\") != -1) {
-    //        // file has the full path included, so do nothing
-    //        path = file;
-    //    }
-    //    else {
-    //        if (self.rootFolder() !== "") {
-    //            // We only add the rootFolder if it's not the empty string. 
-    //            // If is IS the empty string, the Path.Combine function on the server 
-    //            // will take it (\\file) as an absolute path and that's obviously not right! 
-    //            path = self.rootFolder() + "\\" + file;
-    //        } else path = file;
-    //    }
-    //    return path;
-    //}
 
     // currentFolderCanBeDeleted
     // It has no files or folders.
@@ -368,56 +345,19 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
 
-    // deleteFolder
-    //
-    //
-    self.deleteFolder = function () {
-
-        var path = self.rootFolder();  // TODO: rename to current folder 
-
-        $.ajax({
-            url: '/default/DeleteFolder',
-            method: "POST",                // should always delete with POST 
-            data: { folderpath: path }
-        })
-            .done(function (res) {
-                //debugger;
-                consolelog(res);
-                self.UpdateStatusMessage(res);
-
-                self.goUp();
-                
-                //self.refreshBothLists();  // goUp already does this. 
-
-                // TODO: Only do this if the folder just deleted is involved in the search listing
-                // 
-                self.doSearch();
-
-                // Note: Kludge. Open the tree view, because it sometimes closes! 
-                var obj = document.getElementById("divDirectoryTreeContainer");
-                obj.hidden = false;
-
-            })
-            .fail(function (err) {
-                consolelog('Error: ' + err);
-            });
-
-    }
 
     // copyFile
     //
     //
     self.copyFile = function (frompath, topath) {
-        //alert("Would copy " + frompath + " to " + topath);
-        $.ajax({
-            url: '/default/CopyFileOrDirectory',
+
+        var xhr = $.ajax('/default/CopyFileOrDirectory', {
             method: "POST",                // should always delete with POST 
             data: { frompath, topath }
         }).done(function (res) {
-            //debugger;
             consolelog(res);
             self.UpdateStatusMessage(res);
-            
+
             self.refreshBothLists();
             // TODO: Only do this if the file just deleted is in the search listing
             // 
@@ -432,8 +372,7 @@ function FileManModel(searchPhrase, rootFolder) {
     //
     //
     self.moveFile = function (frompath, topath) {
-        $.ajax({
-            url: '/default/MoveFileOrDirectory',
+        var xhr = $.ajax('/default/MoveFileOrDirectory', {
             method: "POST",                // should always delete with POST 
             data: { frompath, topath }
         }).done(function (res) {
@@ -450,55 +389,55 @@ function FileManModel(searchPhrase, rootFolder) {
     }
 
     // TODO: change name to deleteFileOrDirectory
-    self.deleteFile = function (file, bForced) {
+    self.deleteFileOrDirectory = function (file, bForced) {
         var filepath;
         filepath = file;
         if (bForced == undefined) bForced = false;
 
-        //alert("would delete " + filepath);
-        //return;
+        //// If we're deleting the currently displayed file, 
+        //// clear the display
+        //if (file == self.currentFile()) {
+        //    self.currentFile("");
+        //    self.currentFileContents("");
+        //} else {
+        //    if (file == self.rootFolder()) {
+        //        self.goUp();
+        //    }
+        //}
 
-        // If we're deleting the currently displayed file, 
-        // clear the display
-        if (file == self.currentFile()) {
-            self.currentFile("");
-            self.currentFileContents("");
-        } else {
-            if (file == self.rootFolder()) {
-                self.rootFolder("");
-            }
-        }
-        
-
-        $.ajax({
-            url: '/default/DeleteFileOrDirectory',
+        var xhr = $.ajax('/default/DeleteFileOrDirectory', {
             method: "POST",                // should always delete with POST 
             data: { filepath, bForced }
-        })
-            .done(function (res) {
-                //debugger;
-                consolelog(res);
-                self.UpdateStatusMessage(res);
+        }).done(function (res) {
+            consolelog(res);
+            self.UpdateStatusMessage(res);
 
-                self.refreshBothLists();
-                // TODO: Only do this if the file just deleted is in the search listing
-                // 
-                self.doSearch();
-            })
-            .fail(function (err) {
-                consolelog('Error: ' + err);
-                self.UpdateStatusMessage("Error: " + err)
-            });
+            // If we're deleting the currently displayed file, 
+            // clear the display
+            if (file == self.currentFile()) {
+                self.currentFile("");
+                self.currentFileContents("");
+            } else {
+                if (file == self.rootFolder()) {
+                    self.goUp();
+                }
+            }
+
+            self.refreshBothLists();
+            // TODO: Only do this if the file just deleted is in the search listing
+            // 
+            self.doSearch();
+        }).fail(function (err) {
+            consolelog('Error: ' + err);
+            self.UpdateStatusMessage("Error: " + err)
+        });
 
     }
 
-    //self.uploadFile = function () {
-
-    //    doUpload().then(() => {
-    //        self.refreshBothLists();
-    //    }).catch((err) => { self.UpdateStatusMessage(err) });  // refresh
-    //}
-
+    // goUp
+    // Removes the last segment of the rootFolder, then refreshes both views. 
+    //
+    //
     self.goUp = () => {
         //alert(self.rootFolder());
         var newpath = self.rootFolder();
@@ -506,12 +445,7 @@ function FileManModel(searchPhrase, rootFolder) {
             newpath = self.RemoveLastDirectoryPartOf(newpath);
         }
         self.rootFolder(newpath);
-
-        //alert(newpath);
         self.refreshBothLists();
-        //if (self.rootFolder() != "") {
-        //    self.UpdateStatusMessage(`Current folder: New root path is ${self.rootFolder()}`)
-        //} 
     }
 
     //
@@ -538,6 +472,11 @@ function FileManModel(searchPhrase, rootFolder) {
         return the_url.substring(0, the_url.lastIndexOf('\\'));
     }
 
+
+    // doSearch 
+    //
+    //
+    //
     self.doSearch = async () => {
         //alert("Search called");
         var searchphrase = self.searchPhrase();
@@ -551,65 +490,124 @@ function FileManModel(searchPhrase, rootFolder) {
         }
 
         var path = self.rootFolder();
-        await $.ajax({
-            url: '/default/searchFolder',
+        var xhr = await $.ajax('/default/searchFolder', {
             method: "POST",
             data: { searchphrase, path }
-        })
-            .done(function (res) {
-                var success = res.success;
-                var msg = res.msg;
-                var data = res.data;
+        }).done(function (res) {
+            var success = res.success;
+            var msg = res.msg;
+            var data = res.data;
 
-                //alert(JSON.stringify(res));
-                self.searchResults(data);
-                self.UpdateStatusMessage(msg);
+            //alert(JSON.stringify(res));
+            self.searchResults(data);
+            self.UpdateStatusMessage(msg);
 
-                self.numberOfSearchResults(data.length);
+            self.numberOfSearchResults(data.length);
 
-                self.updateUrlWithState();
+            self.updateUrlWithState();
 
-                updateDragClassesAndHandlers();  // because new elements have been added
-            })
-            .fail(function (err) {
+            updateDragClassesAndHandlers();  // because new elements have been added
+        }).fail(function (err) {
                 alert("There was an error searching. See the log for details.");
                 self.UpdateStatusMessage(err.responseText);
-            });
+        });
     }
 
-    //
-    // Adds data after # in url to hold the state, in case a user wants to share a particular search or rootFolder.
+    // updateUrlWithState
+    // Adds data after # in url to hold the state, in case a user wants to share a particular search or rootFolder by just sharing the URL.
     //
     self.updateUrlWithState = function () {
         var location = document.location.href;
         document.location = location.split("#")[0] + "#" + self.searchPhrase() + "&" + self.rootFolder();
     }
 
-    //
+    // refreshBothLists
     // This makes ajax calls to refresh both displays
     //
     self.refreshBothLists = async () => {
-        await self.getDirectoryTree();  // tree view
+
+        //await self.getDirectoryTree();  // tree view
+
+        self.getDirectoryTreeJS();  // tree view, using worker 
+
         await self.getFolderData();     // folder/file panel view 
     }
 
+    // getDirectoryTreeJS
+    // Uses the WebWorker to make the ajax call to get the directory tree data.
+    //
+    //
+    self.getDirectoryTreeJS = function () {
+
+        // worker is in DirectoryTreeWorker.js and DTreeWorker.js (the worker code)
+        if (true) {
+            directoryTreeWorker.postMessage({ msg: "start", path: "" });  // start WebWorker : get tree starting at root 
+        }
+        else {
+            // for testing, 
+            var path = "";
+            var url = '/default/getFullDirectoryTree';
+
+            var xhr = new XMLHttpRequest();
+
+            // async = true 
+            xhr.open('POST', url, true);  // no username/password
+
+            //
+            // processing data when loaded 
+            //
+            xhr.onload = (d) => {
+                var resp = d.currentTarget;  // XMLHttpRequest
+                var loaded = resp.loaded;    // total bytes loaded so far 
+                var total = resp.total;      // total bytes in job
+                if (resp.status == 200 && resp.statusText == "OK") {
+                    var json = JSON.parse(d.currentTarget.responseText);
+                    self.DirectoryTree(json);
+                    updateDragClassesAndHandlers();
+                    //
+                    // collapse any paths in collapseFolders array
+                    //
+                    //if (self.collapsedFolders().length > 0) {
+                    //    $.each($(".up"), (idx, toggleIcon) => {
+
+                    //        var fullpath = $(toggleIcon).attr("fullpath");
+                    //        if (self.pathIsCollapsed(fullpath)) {
+                    //            $(toggleIcon).click();   // simulate clicking the UP icon to close the folder's contents
+                    //        }
+                    //    });
+                    //}
+                }
+                else {
+                    self.UpdateStatusMessage("ERROR reading directory tree : " + resp.status + " " + resp.statusText);
+                }
+            };
+
+            xhr.onerror = (err) => {
+                self.UpdateStatusMessage("Error in getDirectoryTreeJS: " + err);
+            }
+
+            var formdata = new FormData();
+            formdata.append("rootpath", path);
+            xhr.send(formdata);
+        }
+
+
+    }
     //
     // Gets a JSON object representing a tree structure. 
     // This object is displayed by a recursive knockoutJS template.
     // The tree always starts at the root folder, but this is changeable.
     //
     self.getDirectoryTree = async function () {
+
         var path = "";
         await $.ajax({
             url: '/default/getFullDirectoryTree',
             method: 'POST',
             data: { 'rootpath': path }
         }).done(function (res) {
-            //if (path == "") path = "root";
-
             // To view the json data, uncomment this and run the program.
             // self.currentFileContents(JSON.stringify(res, null, '\t'));
-
 
             self.DirectoryTree(res);  // knockoutJS template works its magic 
 
@@ -618,7 +616,7 @@ function FileManModel(searchPhrase, rootFolder) {
             //
             if (self.collapsedFolders().length > 0) {
                 $.each($(".up"), (idx, toggleIcon) => {
-                    
+
                     var fullpath = $(toggleIcon).attr("fullpath");
                     if (self.pathIsCollapsed(fullpath)) {
                         // This makes the UI jump because folders are collapsed in turn. 
@@ -632,12 +630,12 @@ function FileManModel(searchPhrase, rootFolder) {
 
 
             //
-            //
+            // Temp code to test DirectoryTree.js 
             //
             //var data = self.DirectoryTree();
             //var foundnode = { path: "", folders: [], files: [] };
             //var node = findFolder(data, "Code\\js", foundnode);
-            
+
             //console.log(`${node.path} has ${node.folders.length} folders and ${node.files.length} files.`);
 
             //var foldernode = findNextFolder(node);
@@ -660,7 +658,7 @@ function FileManModel(searchPhrase, rootFolder) {
         await $.ajax({
             url: '/default/getFolder',
             method: "POST",
-            data: { p : path }
+            data: { p: path }
         }).done(function (res) {
             if (path == "") path = "root";
             self.UpdateStatusMessage(`Current Folder (${path}) refreshed.`);
@@ -690,18 +688,34 @@ function FileManModel(searchPhrase, rootFolder) {
 
     self.getFileNameFromPath = (path) => {
         if (path != undefined) {
+            //if (path == "Code") {
+            //    debugger;
+            //}
             var pieces = path.split("\\");
+            //if (pieces.length > 1)
             return pieces[pieces.length - 1];
+            //else
+            //    return "";
+
         } else { return ""; }
     }
 
-    self.getFolderNameFromPath = (path) => {
+    self.getFolderNameFromPath = (path, bIsFile) => {
         if (path != undefined) {
             var pieces = path.split("\\");
-            var name = pieces[pieces.length - 1];
-            if (name == "") name = "root";
+            // remove all but the last element
+            var name;
+            if (pieces.length > 1) {
+                name = pieces.slice(0, pieces.length - 1).join("\\");
+            } else {
+                if (bIsFile)
+                    name = "";
+                else
+                    name = pieces[0];
+            }
+
             return name;
-        } else { return "root"; }
+        } else { return ""; }
     }
 
     self.init = async () => {

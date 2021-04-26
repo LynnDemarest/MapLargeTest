@@ -1,7 +1,7 @@
 ﻿//
 // drag and drop
 //
-const bDEBUG = false; 
+const bDEBUG = true; 
 
 // updateDragClassesAndHandlers
 // Hooks up various events to .file and .folder and .trashicon elements. 
@@ -12,6 +12,7 @@ const bDEBUG = false;
 function updateDragClassesAndHandlers() {
 
     const files = document.querySelectorAll(".file");
+    //const files = $(".file");
     for (var f of files) {
         if (f.getAttribute("dragEventsOK") == null) {
             if (bDEBUG) consolelog("Setting drag event handlers for file : " + f.innerText);
@@ -81,17 +82,17 @@ function dragEnd(e) {
 
 // dragDelete
 // Drop target is trashicon. 
-//
+// You can drop either a file or a folder, so we invoke deleteFileOrDirectory
 function dragDelete(e) {
     
     var frompath = e.dataTransfer.getData("text");
     
-    var bForced = e.ctrlKey;   // delete folder even if not empty 
+    var bForced = e.ctrlKey;   // delete folder even if not empty, no effect on files 
 
     e.currentTarget.classList.remove("trashiconhover");
     e.currentTarget.classList.add("trashicon");
 
-    model.viewModel.deleteFile(frompath, bForced);
+    model.viewModel.deleteFileOrDirectory(frompath, bForced); // do the delete 
 }
 
 // dragEnterTrash
@@ -101,13 +102,13 @@ function dragEnterTrash(e) {
     e.preventDefault();
     e.currentTarget.classList.add("trashiconhover");
     e.currentTarget.classList.remove("trashicon");
-
 }
 
 // dragLeaveTrash
 //
 //
 function dragLeaveTrash(e) {
+    e.preventDefault();
     e.currentTarget.classList.remove("trashiconhover");
     e.currentTarget.classList.add("trashicon");
 }
@@ -116,12 +117,12 @@ function dragLeaveTrash(e) {
 //
 //
 function dragDrop(e) {
-    //e.preventDefault();
+    e.preventDefault();
     if (bDEBUG) consolelog("dragDrop target.id = " + e.target.id);  // folder_0
     if (bDEBUG) consolelog("dragDrop currentTarget = " + JSON.stringify(e.currentTarget));
     
     var frompath = e.dataTransfer.getData("text");
-    if (bDEBUG) consolelog("text = " + file);
+    if (bDEBUG) consolelog("text = " + frompath);
 
     var topath;
     topath = document.getElementById(e.target.id).attributes.fullpath.textContent;

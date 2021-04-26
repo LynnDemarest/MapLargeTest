@@ -100,13 +100,17 @@
     <Content Include="Index.html" />
     <Content Include="js\components\CurrentFolder\current-folder.js" />
     <Content Include="js\DirectoryTree.js" />
+    <Content Include="js\DirectoryTreeWorker.js" />
     <Content Include="js\draganddrop.js" />
+    <Content Include="js\DTreeWorker.js" />
     <Content Include="js\FileMan.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\DefaultController.cs" />
+    <Compile Include="Controllers\HelperFunctions.cs" />
+    <Compile Include="Controllers\JsonResponse.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -125,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="NewFolder1\" />
     <Folder Include="Views\Default\" />
   </ItemGroup>
   <PropertyGroup>
